@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "563383791047",
+    "project_id": "sigilborne-ddm",
+    "storage_bucket": "sigilborne-ddm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:563383791047:android:1f94b573503f44359dbde2",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUu7BGSiDRXcuexskvwDMBjqzuL1thjJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
