@@ -1,1 +1,14 @@
-*node_modules/
+# Node
+node_modules/
+.env
+
+# Firebase Admin / service accounts
+serviceAccountKey.json
+firebase-admin-key.json
+*service-account*.json
+*.pem
+*.p12
+
+# Flutter
+.dart_tool/
+build/
