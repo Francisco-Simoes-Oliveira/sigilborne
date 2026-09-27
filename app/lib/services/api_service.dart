@@ -6,10 +6,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/character.dart';
 import '../models/character_deck.dart';
+import '../models/battle_state.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.message);
+  const ApiException(this.message, {this.code});
   final String message;
+  final String? code;
   @override
   String toString() => message;
 }
@@ -79,6 +81,7 @@ class ApiService {
           data?['error'] is String
               ? data!['error'] as String
               : 'Não foi possível concluir a solicitação. Tente novamente.',
+          code: data?['code'] as String?,
         );
       }
       if (data == null) {
@@ -152,6 +155,87 @@ class ApiService {
   }
 
   void close() => _client.close();
+
+  BattleState _battle(Map<String, dynamic> data) {
+    try {
+      return BattleState.fromJson(
+        Map<String, dynamic>.from(data['battle'] as Map),
+      );
+    } on FormatException {
+      throw const ApiException('A API retornou um estado de batalha inválido.');
+    } on TypeError {
+      throw const ApiException('A API retornou uma batalha incompleta.');
+    }
+  }
+
+  Future<EnemySelection> getEnemies() async {
+    final data = await _request('/api/enemies');
+    try {
+      return EnemySelection.fromJson(data);
+    } on TypeError {
+      throw const ApiException(
+        'A API retornou uma lista de inimigos inválida.',
+      );
+    }
+  }
+
+  Future<BattleState?> getLatestBattle(String characterId) async {
+    final data = await _request(
+      '/api/characters/${Uri.encodeComponent(characterId)}/latest-battle',
+    );
+    return data['battle'] == null ? null : _battle(data);
+  }
+
+  Future<BattleState> startBattle({
+    required String characterId,
+    required String enemyId,
+  }) async => _battle(
+    await _request(
+      '/api/battles',
+      body: {'characterId': characterId, 'enemyId': enemyId},
+      expectedStatus: 201,
+    ),
+  );
+
+  Future<BattleState> getBattle(String battleId) async =>
+      _battle(await _request('/api/battles/${Uri.encodeComponent(battleId)}'));
+
+  Future<BattleState> playCard({
+    required String battleId,
+    required String cardId,
+    required String target,
+    required int expectedVersion,
+  }) async => _battle(
+    await _request(
+      '/api/battles/${Uri.encodeComponent(battleId)}/play-card',
+      body: {
+        'cardId': cardId,
+        'target': target,
+        'expectedVersion': expectedVersion,
+      },
+    ),
+  );
+
+  Future<BattleState> playUltimate({
+    required String battleId,
+    required String target,
+    required int expectedVersion,
+  }) async => _battle(
+    await _request(
+      '/api/battles/${Uri.encodeComponent(battleId)}/play-ultimate',
+      body: {'target': target, 'expectedVersion': expectedVersion},
+    ),
+  );
+
+  Future<BattleState> endTurn({
+    required String battleId,
+    required int expectedVersion,
+  }) async => _battle(
+    await _request(
+      '/api/battles/${Uri.encodeComponent(battleId)}/end-turn',
+      body: {'expectedVersion': expectedVersion},
+    ),
+  );
 
   Future<CharacterDeck> getCharacterDeck(String characterId) async {
     if (characterId.isEmpty) {

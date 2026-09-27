@@ -9,7 +9,10 @@ class FakeFirestore {
     this.commits = 0;
     this.retries = 0;
   }
-  collection(name) { return { doc: id => this.doc(`${name}/${id ?? `auto_${++this.nextId}`}`) }; }
+  collection(name) { return {
+    doc: id => this.doc(`${name}/${id ?? `auto_${++this.nextId}`}`),
+    get: async () => ({ docs: this.paths(name).map(path => ({ id: path.split('/').at(-1), exists: true, data: () => this.data(path) })) }),
+  }; }
   doc(path) { return { path, id: path.split('/').at(-1) }; }
   data(path) { return structuredClone(this.records.get(path)?.data); }
   set(path, data) { this.records.set(path, { version: (this.records.get(path)?.version ?? 0) + 1, data: structuredClone(data) }); }

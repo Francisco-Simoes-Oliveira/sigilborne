@@ -6,7 +6,9 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "seed:cards": "node scripts/seedCards.js",
-    "seed:cards:check": "node scripts/seedCards.js --dry-run"
+    "seed:cards:check": "node scripts/seedCards.js --dry-run",
+    "seed:enemies": "node scripts/seedEnemies.js",
+    "seed:enemies:check": "node scripts/seedEnemies.js --dry-run"
   },
   "keywords": [],
   "author": "",

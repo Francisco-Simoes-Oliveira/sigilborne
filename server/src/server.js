@@ -8,6 +8,7 @@ const characterRoutes =
     require('./routes/character.routes');
 const classRoutes =
     require('./routes/class.routes');
+const battleRoutes = require('./routes/battle.routes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.get('/health', (req, res) => {
 app.use('/api', userRoutes);
 app.use('/api', characterRoutes);
 app.use('/api', classRoutes);
+app.use('/api', battleRoutes);
 
 const PORT = 3000;
 

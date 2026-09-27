@@ -234,6 +234,11 @@ void main() {
         'new-id',
       );
       expect(find.text('Vida: 120'), findsOneWidget);
+      // Let the creation snackbar leave before tapping the bottom action.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Trocar personagem'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Trocar personagem'));
       await tester.pumpAndSettle();
       expect(find.text('Seus personagens'), findsOneWidget);

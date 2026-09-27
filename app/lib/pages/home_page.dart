@@ -49,6 +49,16 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/enemies',
+                arguments: character,
+              ),
+              icon: const Icon(Icons.sports_martial_arts),
+              label: const Text('Batalhar'),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
               onPressed: () =>
                   Navigator.pushNamed(context, '/deck', arguments: character),
               icon: const Icon(Icons.style),
