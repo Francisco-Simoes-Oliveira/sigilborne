@@ -65,6 +65,8 @@ for (const classId of classIds) {
     const character = await characterService(db).createCharacter({ ownerId: 'user-a', name: '  Hero  ', classId });
     const stored = db.data(`characters/${character.id}`);
     assert.equal(stored.name, 'Hero');
+    assert.equal(stored.gold, 0);
+    assert.equal(character.xpToNextLevel, 100);
     assert.ok(stored.equippedDeckId);
     assert.equal(stored.attributes.maxEnergy, 6);
     const deck = await createDeckService(db).getCharacterDeck('user-a', character.id);

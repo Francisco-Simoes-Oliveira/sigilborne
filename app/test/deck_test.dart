@@ -170,6 +170,7 @@ void main() {
       expect(find.byType(TextField), findsNothing);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Bem-vindo, Kael!'), -160);
       expect(find.text('Bem-vindo, Kael!'), findsOneWidget);
     },
   );

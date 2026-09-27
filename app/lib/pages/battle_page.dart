@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/battle_state.dart';
 import '../services/api_service.dart';
 import '../widgets/logout_button.dart';
+import '../widgets/battle_result_panel.dart';
 
 class BattlePage extends StatefulWidget {
   const BattlePage({
@@ -104,6 +105,41 @@ class _BattlePageState extends State<BattlePage> {
     ),
   );
 
+  Widget _result(BattleState battle) => Center(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 720),
+      child: ListView(
+        key: const ValueKey('battle-result-view'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (_busy) const LinearProgressIndicator(),
+          if (_error != null) Text(_error!),
+          BattleResultPanel(
+            battle: battle,
+            onHome: _busy
+                ? null
+                : () => Navigator.of(context).popUntil(
+                    (route) => route.settings.name == '/home' || route.isFirst,
+                  ),
+            onNewBattle: _busy
+                ? null
+                : () => Navigator.of(context).popUntil(
+                    (route) =>
+                        route.settings.name == '/enemies' || route.isFirst,
+                  ),
+          ),
+          ExpansionTile(
+            title: const Text('Ver log da batalha'),
+            children: [
+              for (final event in battle.recentEvents.reversed.take(20))
+                ListTile(title: Text(event.describe(battle.cards))),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+
   Widget _card(String cardId, int index, {bool ultimate = false}) {
     final state = _battle!;
     final card = state.cards[cardId]!;
@@ -181,6 +217,8 @@ class _BattlePageState extends State<BattlePage> {
                       ],
                     ),
             )
+          : battle.status != 'active'
+          ? _result(battle)
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 900),
@@ -204,14 +242,6 @@ class _BattlePageState extends State<BattlePage> {
                       'Turno ${battle.turn}',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    if (battle.status != 'active')
-                      Semantics(
-                        liveRegion: true,
-                        child: Text(
-                          battle.status == 'victory' ? 'VITÓRIA' : 'DERROTA',
-                          style: Theme.of(context).textTheme.headlineLarge,
-                        ),
-                      ),
                     _participant(battle.enemy, 'enemy'),
                     _participant(battle.player, 'player'),
                     const SizedBox(height: 12),
@@ -252,7 +282,7 @@ class _BattlePageState extends State<BattlePage> {
                 ),
               ),
             ),
-      bottomNavigationBar: battle == null
+      bottomNavigationBar: battle == null || battle.status != 'active'
           ? null
           : SafeArea(
               minimum: const EdgeInsets.all(12),

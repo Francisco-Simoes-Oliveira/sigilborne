@@ -1,0 +1,852 @@
+{
+  "battle": {
+    "schemaVersion": 1,
+    "ownerId": "user-a",
+    "characterId": "hero",
+    "enemyId": "goblin",
+    "classId": "warrior",
+    "deckId": "auto_1",
+    "status": "defeat",
+    "turn": 20,
+    "currentActor": "none",
+    "version": 21,
+    "normalCardIds": [
+      "warrior_slash",
+      "warrior_heavy_strike",
+      "warrior_block",
+      "warrior_shield_bash",
+      "warrior_counter_attack",
+      "warrior_charge",
+      "warrior_taunt",
+      "warrior_second_wind",
+      "warrior_double_strike"
+    ],
+    "player": {
+      "name": "Kael",
+      "hp": 0,
+      "maxHp": 120,
+      "attributes": {
+        "hp": 120,
+        "strength": 12,
+        "magicPower": 3,
+        "defense": 12,
+        "speed": 5,
+        "maxEnergy": 6
+      },
+      "guard": 0,
+      "statuses": {},
+      "receivedDamageThisTurn": true,
+      "energy": 6,
+      "maxEnergy": 6,
+      "hand": [
+        "warrior_slash",
+        "warrior_heavy_strike",
+        "warrior_block"
+      ],
+      "queue": [
+        "warrior_shield_bash",
+        "warrior_counter_attack",
+        "warrior_charge",
+        "warrior_taunt",
+        "warrior_second_wind",
+        "warrior_double_strike"
+      ],
+      "ultimate": {
+        "id": "warrior_unbreakable_wall",
+        "charge": 0,
+        "maxCharge": 100
+      }
+    },
+    "enemy": {
+      "name": "Goblin",
+      "hp": 80,
+      "maxHp": 80,
+      "attributes": {
+        "hp": 80,
+        "strength": 8,
+        "magicPower": 0,
+        "defense": 5,
+        "speed": 4,
+        "maxEnergy": 0
+      },
+      "guard": 0,
+      "statuses": {},
+      "receivedDamageThisTurn": false,
+      "behavior": {
+        "type": "pattern",
+        "actions": [
+          "basic_attack",
+          "basic_attack",
+          "heavy_attack"
+        ],
+        "definitions": {
+          "basic_attack": {
+            "name": "Ataque normal",
+            "damage": {
+              "scaling": "strength",
+              "multiplier": 1,
+              "nature": "physical",
+              "element": "neutral",
+              "hits": 1
+            }
+          },
+          "heavy_attack": {
+            "name": "Ataque pesado",
+            "damage": {
+              "scaling": "strength",
+              "multiplier": 1.8,
+              "nature": "physical",
+              "element": "neutral",
+              "hits": 1
+            }
+          }
+        }
+      },
+      "patternIndex": 2
+    },
+    "recentEvents": [
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 104,
+        "version": 16
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 105,
+        "version": 16
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "heavy_attack",
+        "name": "Ataque pesado",
+        "id": 106,
+        "version": 16
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 9,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 107,
+        "version": 16
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 108,
+        "version": 16
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 0,
+        "id": 109,
+        "version": 16
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 110,
+        "version": 16
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 111,
+        "version": 17
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 112,
+        "version": 17
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "basic_attack",
+        "name": "Ataque normal",
+        "id": 113,
+        "version": 17
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 5,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 114,
+        "version": 17
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 115,
+        "version": 17
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 0,
+        "id": 116,
+        "version": 17
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 117,
+        "version": 17
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 118,
+        "version": 18
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 119,
+        "version": 18
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "basic_attack",
+        "name": "Ataque normal",
+        "id": 120,
+        "version": 18
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 5,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 121,
+        "version": 18
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 122,
+        "version": 18
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 0,
+        "id": 123,
+        "version": 18
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 124,
+        "version": 18
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 125,
+        "version": 19
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 126,
+        "version": 19
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "heavy_attack",
+        "name": "Ataque pesado",
+        "id": 127,
+        "version": 19
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 9,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 128,
+        "version": 19
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 129,
+        "version": 19
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 0,
+        "id": 130,
+        "version": 19
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 131,
+        "version": 19
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 132,
+        "version": 20
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 133,
+        "version": 20
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "basic_attack",
+        "name": "Ataque normal",
+        "id": 134,
+        "version": 20
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 5,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 135,
+        "version": 20
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 136,
+        "version": 20
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 0,
+        "id": 137,
+        "version": 20
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 138,
+        "version": 20
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 139,
+        "version": 21
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 140,
+        "version": 21
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "basic_attack",
+        "name": "Ataque normal",
+        "id": 141,
+        "version": 21
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 1,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 142,
+        "version": 21
+      },
+      {
+        "type": "DEFEAT",
+        "id": 143,
+        "version": 21
+      }
+    ],
+    "eventSequence": 143,
+    "rewards": {
+      "xp": 40,
+      "gold": 25
+    },
+    "result": {
+      "rewardsApplied": true,
+      "legacy": false,
+      "rewards": {
+        "xp": 0,
+        "gold": 0
+      },
+      "progression": {
+        "levelBefore": 1,
+        "levelAfter": 1,
+        "xpBefore": 80,
+        "xpAfter": 80,
+        "xpToNextLevel": 100,
+        "goldBefore": 100,
+        "goldAfter": 100,
+        "attributePointsBefore": 0,
+        "attributePointsAfter": 0,
+        "attributePointsGained": 0,
+        "leveledUp": false
+      },
+      "appliedAt": "2026-09-27T04:24:56.815Z"
+    },
+    "catalogFingerprint": "3ec3ae0ad28b11c1c71b6568b0840a9d2b1485e6bc17e5cc4f737af21d0e4dea",
+    "createdAt": "2026-09-27T04:24:56.800Z",
+    "updatedAt": "2026-09-27T04:24:56.815Z",
+    "id": "auto_2",
+    "cards": [
+      {
+        "schemaVersion": 1,
+        "name": "Corte",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 100% da Força.",
+        "cost": 1,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_slash"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe Pesado",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 180% da Força.",
+        "cost": 3,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.8,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_heavy_strike"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Bloqueio",
+        "classId": "warrior",
+        "description": "Recebe Guarda por 1 turno: reduz o dano recebido em 50%.",
+        "cost": 1,
+        "type": "defense",
+        "tags": [
+          "defense",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.5
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_block"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe de Escudo",
+        "classId": "warrior",
+        "description": "Causa dano físico de 120% da Defesa. Com Guarda, atordoa o alvo por 1 turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "defense",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "hasStatus",
+              "target": "self",
+              "status": "guard"
+            },
+            "effects": [
+              {
+                "type": "applyStatus",
+                "target": "enemy",
+                "status": "stunned",
+                "durationTurns": 1,
+                "stacks": 1,
+                "parameters": {}
+              }
+            ]
+          }
+        ],
+        "requirements": [],
+        "id": "warrior_shield_bash"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Contra-Ataque",
+        "classId": "warrior",
+        "description": "Requer Guarda. Causa 120% da Força; é crítico (1,5×) se recebeu dano neste turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "counter"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "eventOccurred",
+              "target": "self",
+              "event": "damageReceived",
+              "window": "currentTurn"
+            },
+            "effects": [
+              {
+                "type": "critical",
+                "multiplier": 1.5
+              }
+            ]
+          }
+        ],
+        "requirements": [
+          {
+            "type": "hasStatus",
+            "target": "self",
+            "status": "guard"
+          }
+        ],
+        "id": "warrior_counter_attack"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Investida",
+        "classId": "warrior",
+        "description": "Causa 120% da Força e deixa o alvo Vulnerável por 1 turno (+20% de dano recebido).",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "vulnerable",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageTakenMultiplier": 1.2
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_charge"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Provocar",
+        "classId": "warrior",
+        "description": "Provoca o alvo por 2 turnos, direcionando seus ataques ao usuário. Recebe Guarda de 30% por 1 turno.",
+        "cost": 1,
+        "type": "skill",
+        "tags": [
+          "control",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "taunted",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {}
+          },
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.3
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_taunt"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Segundo Fôlego",
+        "classId": "warrior",
+        "description": "Recupera vida igual a 200% da Defesa, sem ultrapassar a vida máxima.",
+        "cost": 2,
+        "type": "skill",
+        "tags": [
+          "heal"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "restoreHealth",
+            "target": "self",
+            "scaling": "defense",
+            "multiplier": 2
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_second_wind"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe Duplo",
+        "classId": "warrior",
+        "description": "Ataca duas vezes, causando 65% da Força por acerto.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee",
+          "multiHit"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 0.65,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 2
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_double_strike"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Muralha Inquebrável",
+        "classId": "warrior",
+        "description": "Por 2 turnos, recebe Guarda de 80% e contra-ataca após cada ataque recebido com 80% da Força.",
+        "cost": 6,
+        "type": "ultimate",
+        "tags": [
+          "ultimate",
+          "guard",
+          "counter"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.8
+            }
+          },
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "counterStance",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {
+              "trigger": "afterIncomingAttack",
+              "damage": {
+                "scaling": "strength",
+                "multiplier": 0.8,
+                "nature": "physical",
+                "element": "neutral",
+                "hits": 1
+              },
+              "allowTriggeredChains": false
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_unbreakable_wall"
+      }
+    ],
+    "playable": {
+      "warrior_slash": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_heavy_strike": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_block": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      },
+      "warrior_shield_bash": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_counter_attack": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_charge": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_taunt": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_second_wind": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      },
+      "warrior_double_strike": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_unbreakable_wall": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      }
+    },
+    "catalogChanged": false,
+    "canEndTurn": false
+  },
+  "events": [
+    {
+      "type": "TURN_ENDED",
+      "actor": "player",
+      "id": 139,
+      "version": 21
+    },
+    {
+      "type": "TURN_STARTED",
+      "actor": "enemy",
+      "id": 140,
+      "version": 21
+    },
+    {
+      "type": "ENEMY_ACTION",
+      "actionId": "basic_attack",
+      "name": "Ataque normal",
+      "id": 141,
+      "version": 21
+    },
+    {
+      "type": "DAMAGE",
+      "source": "enemy",
+      "target": "player",
+      "amount": 1,
+      "nature": "physical",
+      "element": "neutral",
+      "id": 142,
+      "version": 21
+    },
+    {
+      "type": "DEFEAT",
+      "id": 143,
+      "version": 21
+    }
+  ],
+  "character": {
+    "name": "Kael",
+    "ownerId": "user-a",
+    "classId": "warrior",
+    "equippedDeckId": "auto_1",
+    "attributes": {
+      "hp": 120,
+      "strength": 12,
+      "magicPower": 3,
+      "defense": 12,
+      "speed": 5,
+      "maxEnergy": 6
+    },
+    "level": 1,
+    "xp": 80,
+    "gold": 100,
+    "attributePoints": 0,
+    "lastBattleId": "auto_2",
+    "id": "hero",
+    "xpToNextLevel": 100
+  }
+}

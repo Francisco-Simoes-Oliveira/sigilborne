@@ -243,22 +243,10 @@ void main() {
         find.text(outcome == 'victory' ? 'VITÓRIA' : 'DERROTA'),
         findsOneWidget,
       );
-      expect(
-        tester
-            .widget<FilledButton>(find.byKey(const ValueKey('end-turn')))
-            .onPressed,
-        isNull,
-      );
-      await tester.scrollUntilVisible(
-        find.byKey(const ValueKey('play-0')),
-        180,
-      );
-      expect(
-        tester
-            .widget<FilledButton>(find.byKey(const ValueKey('play-0')))
-            .onPressed,
-        isNull,
-      );
+      expect(find.byKey(const ValueKey('battle-result')), findsOneWidget);
+      expect(find.byKey(const ValueKey('end-turn')), findsNothing);
+      expect(find.byKey(const ValueKey('play-0')), findsNothing);
+      expect(find.textContaining('Batalha antiga'), findsOneWidget);
     });
   }
 

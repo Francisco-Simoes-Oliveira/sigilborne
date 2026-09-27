@@ -1,0 +1,866 @@
+{
+  "battle": {
+    "schemaVersion": 1,
+    "ownerId": "user-a",
+    "characterId": "hero",
+    "enemyId": "goblin",
+    "classId": "warrior",
+    "deckId": "auto_1",
+    "status": "victory",
+    "turn": 4,
+    "currentActor": "none",
+    "version": 13,
+    "normalCardIds": [
+      "warrior_slash",
+      "warrior_heavy_strike",
+      "warrior_block",
+      "warrior_shield_bash",
+      "warrior_counter_attack",
+      "warrior_charge",
+      "warrior_taunt",
+      "warrior_second_wind",
+      "warrior_double_strike"
+    ],
+    "player": {
+      "name": "Kael",
+      "hp": 106,
+      "maxHp": 120,
+      "attributes": {
+        "hp": 120,
+        "strength": 12,
+        "magicPower": 3,
+        "defense": 12,
+        "speed": 5,
+        "maxEnergy": 6
+      },
+      "guard": 0.3,
+      "statuses": {
+        "guard": {
+          "remainingTurns": 1,
+          "appliedOnTurn": 3,
+          "parameters": {
+            "damageReduction": 0.3
+          }
+        }
+      },
+      "receivedDamageThisTurn": true,
+      "energy": 0,
+      "maxEnergy": 6,
+      "hand": [
+        "warrior_second_wind",
+        "warrior_heavy_strike",
+        "warrior_shield_bash"
+      ],
+      "queue": [
+        "warrior_charge",
+        "warrior_block",
+        "warrior_counter_attack",
+        "warrior_taunt",
+        "warrior_slash",
+        "warrior_double_strike"
+      ],
+      "ultimate": {
+        "id": "warrior_unbreakable_wall",
+        "charge": 100,
+        "maxCharge": 100
+      }
+    },
+    "enemy": {
+      "name": "Goblin",
+      "hp": 0,
+      "maxHp": 80,
+      "attributes": {
+        "hp": 80,
+        "strength": 8,
+        "magicPower": 0,
+        "defense": 5,
+        "speed": 4,
+        "maxEnergy": 0
+      },
+      "guard": 0,
+      "statuses": {
+        "taunted": {
+          "remainingTurns": 1,
+          "appliedOnTurn": 3,
+          "parameters": {}
+        }
+      },
+      "receivedDamageThisTurn": true,
+      "behavior": {
+        "type": "pattern",
+        "actions": [
+          "basic_attack",
+          "basic_attack",
+          "heavy_attack"
+        ],
+        "definitions": {
+          "basic_attack": {
+            "name": "Ataque normal",
+            "damage": {
+              "scaling": "strength",
+              "multiplier": 1,
+              "nature": "physical",
+              "element": "neutral",
+              "hits": 1
+            }
+          },
+          "heavy_attack": {
+            "name": "Ataque pesado",
+            "damage": {
+              "scaling": "strength",
+              "multiplier": 1.8,
+              "nature": "physical",
+              "element": "neutral",
+              "hits": 1
+            }
+          }
+        }
+      },
+      "patternIndex": 0
+    },
+    "recentEvents": [
+      {
+        "type": "CARD_USED",
+        "cardId": "warrior_block",
+        "id": 30,
+        "version": 7
+      },
+      {
+        "type": "ENERGY_SPENT",
+        "amount": 1,
+        "id": 31,
+        "version": 7
+      },
+      {
+        "type": "GUARD_GAINED",
+        "target": "player",
+        "reduction": 0.5,
+        "id": 32,
+        "version": 7
+      },
+      {
+        "type": "CARD_DRAWN",
+        "cardId": "warrior_second_wind",
+        "id": 33,
+        "version": 7
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 34,
+        "version": 8
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 35,
+        "version": 8
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "basic_attack",
+        "name": "Ataque normal",
+        "id": 36,
+        "version": 8
+      },
+      {
+        "type": "GUARD_ABSORBED",
+        "target": "player",
+        "amount": 2,
+        "id": 37,
+        "version": 8
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 3,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 38,
+        "version": 8
+      },
+      {
+        "type": "STATUS_EXPIRED",
+        "target": "enemy",
+        "status": "vulnerable",
+        "id": 39,
+        "version": 8
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 40,
+        "version": 8
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 3,
+        "id": 41,
+        "version": 8
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 42,
+        "version": 8
+      },
+      {
+        "type": "CARD_USED",
+        "cardId": "warrior_counter_attack",
+        "id": 43,
+        "version": 9
+      },
+      {
+        "type": "ENERGY_SPENT",
+        "amount": 2,
+        "id": 44,
+        "version": 9
+      },
+      {
+        "type": "CRITICAL",
+        "source": "player",
+        "target": "enemy",
+        "multiplier": 1.5,
+        "id": 45,
+        "version": 9
+      },
+      {
+        "type": "DAMAGE",
+        "source": "player",
+        "target": "enemy",
+        "amount": 17,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 46,
+        "version": 9
+      },
+      {
+        "type": "CARD_DRAWN",
+        "cardId": "warrior_double_strike",
+        "id": 47,
+        "version": 9
+      },
+      {
+        "type": "CARD_USED",
+        "cardId": "warrior_taunt",
+        "id": 48,
+        "version": 10
+      },
+      {
+        "type": "ENERGY_SPENT",
+        "amount": 1,
+        "id": 49,
+        "version": 10
+      },
+      {
+        "type": "STATUS_APPLIED",
+        "target": "enemy",
+        "status": "taunted",
+        "turns": 2,
+        "id": 50,
+        "version": 10
+      },
+      {
+        "type": "GUARD_GAINED",
+        "target": "player",
+        "reduction": 0.3,
+        "id": 51,
+        "version": 10
+      },
+      {
+        "type": "CARD_DRAWN",
+        "cardId": "warrior_slash",
+        "id": 52,
+        "version": 10
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "player",
+        "id": 53,
+        "version": 11
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "enemy",
+        "id": 54,
+        "version": 11
+      },
+      {
+        "type": "ENEMY_ACTION",
+        "actionId": "heavy_attack",
+        "name": "Ataque pesado",
+        "id": 55,
+        "version": 11
+      },
+      {
+        "type": "GUARD_ABSORBED",
+        "target": "player",
+        "amount": 3,
+        "id": 56,
+        "version": 11
+      },
+      {
+        "type": "DAMAGE",
+        "source": "enemy",
+        "target": "player",
+        "amount": 6,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 57,
+        "version": 11
+      },
+      {
+        "type": "TURN_ENDED",
+        "actor": "enemy",
+        "id": 58,
+        "version": 11
+      },
+      {
+        "type": "ENERGY_RECOVERED",
+        "amount": 3,
+        "id": 59,
+        "version": 11
+      },
+      {
+        "type": "TURN_STARTED",
+        "actor": "player",
+        "id": 60,
+        "version": 11
+      },
+      {
+        "type": "CARD_USED",
+        "cardId": "warrior_slash",
+        "id": 61,
+        "version": 12
+      },
+      {
+        "type": "ENERGY_SPENT",
+        "amount": 1,
+        "id": 62,
+        "version": 12
+      },
+      {
+        "type": "DAMAGE",
+        "source": "player",
+        "target": "enemy",
+        "amount": 10,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 63,
+        "version": 12
+      },
+      {
+        "type": "CARD_DRAWN",
+        "cardId": "warrior_heavy_strike",
+        "id": 64,
+        "version": 12
+      },
+      {
+        "type": "CARD_USED",
+        "cardId": "warrior_double_strike",
+        "id": 65,
+        "version": 13
+      },
+      {
+        "type": "ENERGY_SPENT",
+        "amount": 2,
+        "id": 66,
+        "version": 13
+      },
+      {
+        "type": "DAMAGE",
+        "source": "player",
+        "target": "enemy",
+        "amount": 2,
+        "nature": "physical",
+        "element": "neutral",
+        "id": 67,
+        "version": 13
+      },
+      {
+        "type": "CARD_DRAWN",
+        "cardId": "warrior_shield_bash",
+        "id": 68,
+        "version": 13
+      },
+      {
+        "type": "VICTORY",
+        "id": 69,
+        "version": 13
+      }
+    ],
+    "eventSequence": 69,
+    "rewards": {
+      "xp": 40,
+      "gold": 25
+    },
+    "result": {
+      "rewardsApplied": true,
+      "legacy": false,
+      "rewards": {
+        "xp": 40,
+        "gold": 25
+      },
+      "progression": {
+        "levelBefore": 1,
+        "levelAfter": 2,
+        "xpBefore": 80,
+        "xpAfter": 20,
+        "xpToNextLevel": 150,
+        "goldBefore": 100,
+        "goldAfter": 125,
+        "attributePointsBefore": 0,
+        "attributePointsAfter": 2,
+        "attributePointsGained": 2,
+        "leveledUp": true
+      },
+      "appliedAt": "2026-09-27T04:24:56.794Z"
+    },
+    "catalogFingerprint": "3ec3ae0ad28b11c1c71b6568b0840a9d2b1485e6bc17e5cc4f737af21d0e4dea",
+    "createdAt": "2026-09-27T04:24:56.776Z",
+    "updatedAt": "2026-09-27T04:24:56.794Z",
+    "id": "auto_2",
+    "cards": [
+      {
+        "schemaVersion": 1,
+        "name": "Corte",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 100% da Força.",
+        "cost": 1,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_slash"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe Pesado",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 180% da Força.",
+        "cost": 3,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.8,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_heavy_strike"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Bloqueio",
+        "classId": "warrior",
+        "description": "Recebe Guarda por 1 turno: reduz o dano recebido em 50%.",
+        "cost": 1,
+        "type": "defense",
+        "tags": [
+          "defense",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.5
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_block"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe de Escudo",
+        "classId": "warrior",
+        "description": "Causa dano físico de 120% da Defesa. Com Guarda, atordoa o alvo por 1 turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "defense",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "hasStatus",
+              "target": "self",
+              "status": "guard"
+            },
+            "effects": [
+              {
+                "type": "applyStatus",
+                "target": "enemy",
+                "status": "stunned",
+                "durationTurns": 1,
+                "stacks": 1,
+                "parameters": {}
+              }
+            ]
+          }
+        ],
+        "requirements": [],
+        "id": "warrior_shield_bash"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Contra-Ataque",
+        "classId": "warrior",
+        "description": "Requer Guarda. Causa 120% da Força; é crítico (1,5×) se recebeu dano neste turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "counter"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "eventOccurred",
+              "target": "self",
+              "event": "damageReceived",
+              "window": "currentTurn"
+            },
+            "effects": [
+              {
+                "type": "critical",
+                "multiplier": 1.5
+              }
+            ]
+          }
+        ],
+        "requirements": [
+          {
+            "type": "hasStatus",
+            "target": "self",
+            "status": "guard"
+          }
+        ],
+        "id": "warrior_counter_attack"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Investida",
+        "classId": "warrior",
+        "description": "Causa 120% da Força e deixa o alvo Vulnerável por 1 turno (+20% de dano recebido).",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "vulnerable",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageTakenMultiplier": 1.2
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_charge"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Provocar",
+        "classId": "warrior",
+        "description": "Provoca o alvo por 2 turnos, direcionando seus ataques ao usuário. Recebe Guarda de 30% por 1 turno.",
+        "cost": 1,
+        "type": "skill",
+        "tags": [
+          "control",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "taunted",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {}
+          },
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.3
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_taunt"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Segundo Fôlego",
+        "classId": "warrior",
+        "description": "Recupera vida igual a 200% da Defesa, sem ultrapassar a vida máxima.",
+        "cost": 2,
+        "type": "skill",
+        "tags": [
+          "heal"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "restoreHealth",
+            "target": "self",
+            "scaling": "defense",
+            "multiplier": 2
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_second_wind"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Golpe Duplo",
+        "classId": "warrior",
+        "description": "Ataca duas vezes, causando 65% da Força por acerto.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee",
+          "multiHit"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 0.65,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 2
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_double_strike"
+      },
+      {
+        "schemaVersion": 1,
+        "name": "Muralha Inquebrável",
+        "classId": "warrior",
+        "description": "Por 2 turnos, recebe Guarda de 80% e contra-ataca após cada ataque recebido com 80% da Força.",
+        "cost": 6,
+        "type": "ultimate",
+        "tags": [
+          "ultimate",
+          "guard",
+          "counter"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.8
+            }
+          },
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "counterStance",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {
+              "trigger": "afterIncomingAttack",
+              "damage": {
+                "scaling": "strength",
+                "multiplier": 0.8,
+                "nature": "physical",
+                "element": "neutral",
+                "hits": 1
+              },
+              "allowTriggeredChains": false
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": [],
+        "id": "warrior_unbreakable_wall"
+      }
+    ],
+    "playable": {
+      "warrior_slash": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_heavy_strike": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_block": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      },
+      "warrior_shield_bash": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_counter_attack": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_charge": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_taunt": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_second_wind": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      },
+      "warrior_double_strike": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "enemy"
+      },
+      "warrior_unbreakable_wall": {
+        "canPlay": false,
+        "reason": "A batalha terminou.",
+        "target": "self"
+      }
+    },
+    "catalogChanged": false,
+    "canEndTurn": false
+  },
+  "events": [
+    {
+      "type": "CARD_USED",
+      "cardId": "warrior_double_strike",
+      "id": 65,
+      "version": 13
+    },
+    {
+      "type": "ENERGY_SPENT",
+      "amount": 2,
+      "id": 66,
+      "version": 13
+    },
+    {
+      "type": "DAMAGE",
+      "source": "player",
+      "target": "enemy",
+      "amount": 2,
+      "nature": "physical",
+      "element": "neutral",
+      "id": 67,
+      "version": 13
+    },
+    {
+      "type": "CARD_DRAWN",
+      "cardId": "warrior_shield_bash",
+      "id": 68,
+      "version": 13
+    },
+    {
+      "type": "VICTORY",
+      "id": 69,
+      "version": 13
+    }
+  ],
+  "character": {
+    "name": "Kael",
+    "ownerId": "user-a",
+    "classId": "warrior",
+    "equippedDeckId": "auto_1",
+    "attributes": {
+      "hp": 120,
+      "strength": 12,
+      "magicPower": 3,
+      "defense": 12,
+      "speed": 5,
+      "maxEnergy": 6
+    },
+    "level": 2,
+    "xp": 20,
+    "gold": 125,
+    "attributePoints": 2,
+    "lastBattleId": "auto_2",
+    "id": "hero",
+    "xpToNextLevel": 150
+  }
+}

@@ -132,6 +132,16 @@ class ApiService {
     }
   }
 
+  Future<Character> getCharacter(String characterId) async {
+    final characters = await getCharacters();
+    for (final character in characters) {
+      if (character.id == characterId) return character;
+    }
+    throw const ApiException(
+      'Personagem não encontrado nesta conta. Volte à seleção.',
+    );
+  }
+
   Future<Character> createCharacter({
     required String name,
     required String classId,

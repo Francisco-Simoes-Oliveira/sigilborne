@@ -23,8 +23,8 @@ function arrange(db, id, hand, updates = {}) {
 
 test('enemy seed supports dry data, repeat and conflict without overwrite', async () => {
   const db = new FakeFirestore();
-  assert.deepEqual(await seedEnemies(db), { created: 1, unchanged: 0 });
-  assert.deepEqual(await seedEnemies(db), { created: 0, unchanged: 1 });
+  assert.deepEqual(await seedEnemies(db), { created: 1, updated: 0, unchanged: 0 });
+  assert.deepEqual(await seedEnemies(db), { created: 0, updated: 0, unchanged: 1 });
   db.set('enemies/goblin', { name: 'Custom Goblin' });
   await assert.rejects(seedEnemies(db), /dados diferentes/);
   assert.equal(db.data('enemies/goblin').name, 'Custom Goblin');

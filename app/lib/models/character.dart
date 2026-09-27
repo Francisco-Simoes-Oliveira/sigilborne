@@ -6,11 +6,14 @@ class Character {
     required this.classId,
     this.level = 1,
     this.xp = 0,
+    this.gold = 0,
+    int? xpToNextLevel,
     this.attributePoints = 0,
     Map<String, dynamic> attributes = const {},
     Map<String, dynamic> equipment = const {},
     this.equippedDeckId,
-  }) : attributes = Map.unmodifiable(attributes),
+  }) : _xpToNextLevel = xpToNextLevel,
+       attributes = Map.unmodifiable(attributes),
        equipment = Map.unmodifiable(equipment);
 
   factory Character.fromJson(Map<String, dynamic> json) {
@@ -29,6 +32,8 @@ class Character {
       classId: requiredText('classId'),
       level: (json['level'] as num?)?.toInt() ?? 1,
       xp: (json['xp'] as num?)?.toInt() ?? 0,
+      gold: (json['gold'] as num?)?.toInt() ?? 0,
+      xpToNextLevel: (json['xpToNextLevel'] as num?)?.toInt(),
       attributePoints: (json['attributePoints'] as num?)?.toInt() ?? 0,
       attributes: Map<String, dynamic>.from(json['attributes'] as Map? ?? {}),
       equipment: Map<String, dynamic>.from(json['equipment'] as Map? ?? {}),
@@ -42,6 +47,10 @@ class Character {
   final String classId;
   final int level;
   final int xp;
+  final int gold;
+  final int? _xpToNextLevel;
+  // The API supplies this value. The fallback only displays older responses.
+  int get xpToNextLevel => _xpToNextLevel ?? 100 + (level - 1) * 50;
   final int attributePoints;
   final Map<String, dynamic> attributes;
   final Map<String, dynamic> equipment;

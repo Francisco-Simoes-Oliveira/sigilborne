@@ -1,4 +1,5 @@
-const enemies = {
+// Frozen migration baseline: keep this v1 definition unchanged in future seeds.
+const legacyEnemies = {
   goblin: {
     schemaVersion: 1,
     name: 'Goblin',
@@ -14,4 +15,7 @@ const enemies = {
     },
   },
 };
-module.exports = { enemies };
+const enemies = {
+  goblin: { ...legacyEnemies.goblin, schemaVersion: 2, rewards: { xp: 40, gold: 25 } },
+};
+module.exports = { enemies, legacyEnemies };

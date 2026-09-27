@@ -90,6 +90,32 @@ class BattleAction {
   final String target;
 }
 
+class BattleResult {
+  BattleResult.fromJson(Map<String, dynamic> json)
+    : rewardsApplied = json['rewardsApplied'] as bool,
+      legacy = json['legacy'] as bool? ?? false,
+      xp = (json['rewards']['xp'] as num).toInt(),
+      gold = (json['rewards']['gold'] as num).toInt(),
+      levelBefore = (json['progression']['levelBefore'] as num).toInt(),
+      levelAfter = (json['progression']['levelAfter'] as num).toInt(),
+      xpAfter = (json['progression']['xpAfter'] as num).toInt(),
+      xpToNextLevel = (json['progression']['xpToNextLevel'] as num).toInt(),
+      attributePointsGained =
+          (json['progression']['attributePointsGained'] as num).toInt(),
+      leveledUp = json['progression']['leveledUp'] as bool;
+
+  final bool rewardsApplied;
+  final bool legacy;
+  final int xp;
+  final int gold;
+  final int levelBefore;
+  final int levelAfter;
+  final int xpAfter;
+  final int xpToNextLevel;
+  final int attributePointsGained;
+  final bool leveledUp;
+}
+
 class BattleState {
   BattleState.fromJson(Map<String, dynamic> json)
     : id = json['id'] as String,
@@ -123,6 +149,11 @@ class BattleState {
       ),
       canEndTurn = json['canEndTurn'] as bool,
       catalogChanged = json['catalogChanged'] as bool,
+      result = json['result'] == null
+          ? null
+          : BattleResult.fromJson(
+              Map<String, dynamic>.from(json['result'] as Map),
+            ),
       recentEvents = (json['recentEvents'] as List)
           .map(
             (item) =>
@@ -155,5 +186,6 @@ class BattleState {
   final Map<String, BattleAction> actions;
   final bool canEndTurn;
   final bool catalogChanged;
+  final BattleResult? result;
   final List<BattleEvent> recentEvents;
 }

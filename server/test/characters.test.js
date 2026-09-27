@@ -29,6 +29,7 @@ function fixture() {
   const queries = [];
   const service = load('src/services/character.service.js', {
     './deck.service': require('../src/services/deck.service'),
+    './progression.service': require('../src/services/progression.service'),
     '../config/firebase': {
       db: {
         collection(name) {
@@ -95,13 +96,13 @@ test('GET /characters isolates owners and ignores a forged query ownerId', async
   const { list, queries } = fixture();
   const response = await list('Bearer user-a', { ownerId: 'user-b' });
   assert.equal(response.statusCode, 200);
-  assert.deepEqual(response.body.characters, [{ id: 'doc-a', ownerId: 'user-a', name: 'Kael' }]);
+  assert.deepEqual(response.body.characters, [{ id: 'doc-a', ownerId: 'user-a', name: 'Kael', gold: 0, xpToNextLevel: 100 }]);
   assert.deepEqual(queries, [{ field: 'ownerId', operator: '==', ownerId: 'user-a' }]);
 });
 
 test('another authenticated user receives only their own character', async () => {
   const response = await fixture().list('Bearer user-b');
-  assert.deepEqual(response.body, { characters: [{ id: 'doc-b', ownerId: 'user-b', name: 'Lyra' }] });
+  assert.deepEqual(response.body, { characters: [{ id: 'doc-b', ownerId: 'user-b', name: 'Lyra', gold: 0, xpToNextLevel: 100 }] });
 });
 
 test('an account without characters receives an empty array', async () => {

@@ -80,7 +80,11 @@ class _CharacterSessionState extends State<CharacterSession> {
                     apiService: _api,
                     onSignOut: widget.onSignOut,
                   )
-                : HomePage(character: character, onSignOut: widget.onSignOut),
+                : HomePage(
+                    character: character,
+                    onSignOut: widget.onSignOut,
+                    apiService: _api,
+                  ),
           );
         }
         return MaterialPageRoute<void>(

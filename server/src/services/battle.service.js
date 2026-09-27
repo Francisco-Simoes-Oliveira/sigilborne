@@ -1,8 +1,9 @@
 const { createHash } = require('node:crypto');
 const GameError = require('../domain/game-error');
 const { validId, validateCard, validateDeckCards } = require('../domain/card-schema');
-const { validateEnemy } = require('../domain/enemy-schema');
+const { validateEnemy, validateRewards } = require('../domain/enemy-schema');
 const { createDeckService } = require('./deck.service');
+const { finalizeRewards } = require('./reward.service');
 const Engine = require('../battle/BattleEngine');
 
 function stable(value) {
@@ -91,6 +92,8 @@ function createBattleService(db, { choose } = {}) {
       const enemyDoc = await transaction.get(db.collection('enemies').doc(enemyId));
       if (!enemyDoc.exists) throw new GameError('ENEMY_NOT_FOUND', 404, 'Inimigo não encontrado. Execute o seed de inimigos.');
       const enemy = enemyDoc.data(); validateEnemy(enemy);
+      if (enemy.rewards == null) throw new GameError('ENEMY_REWARDS_MISSING', 503, 'Atualize o seed de inimigos com --migrate-rewards antes de iniciar uma nova luta.');
+      validateRewards(enemy.rewards);
       const deckDoc = await transaction.get(db.collection('decks').doc(character.equippedDeckId));
       const deckData = owned(deckDoc, ownerId, 'Deck');
       if (deckData.characterId !== characterId) throw new GameError('INVALID_DECK_LINK', 403, 'O deck não pertence a este personagem.');
@@ -103,10 +106,13 @@ function createBattleService(db, { choose } = {}) {
       const deck = { id: deckDoc.id, cards: deckData.cards.map(id => byId.get(id)), ultimate: byId.get(deckData.ultimateId) };
       const result = Engine.startBattle({ ownerId, characterId, character, enemyId, enemy, deck }, choose);
       const now = new Date();
-      const battle = { ...result.battle, catalogFingerprint: fingerprint(cards), createdAt: now, updatedAt: now };
+      const battle = { ...result.battle, rewards: { xp: enemy.rewards.xp, gold: enemy.rewards.gold }, result: null,
+        catalogFingerprint: fingerprint(cards), createdAt: now, updatedAt: now };
+      const settlement = finalizeRewards(battle, character, now);
+      if (settlement) battle.result = settlement.result;
       const events = record(battle, result.events);
       transaction.create(reference, battle);
-      transaction.update(characterRef, { lastBattleId: reference.id });
+      transaction.update(characterRef, { lastBattleId: reference.id, ...(settlement?.characterUpdates ?? {}) });
       return present(reference.id, battle, { cards, changed: false }, events);
     });
   }
@@ -153,6 +159,16 @@ function createBattleService(db, { choose } = {}) {
       } else throw new GameError('INVALID_ACTION', 400, 'Ação inválida.');
       battle.version++;
       battle.updatedAt = new Date();
+      // All reads happen before any writes. A retry re-reads both the battle
+      // version and the character balance, so rewards cannot be duplicated/lost.
+      if (battle.status !== 'active' && battle.result?.rewardsApplied !== true) {
+        checkId(battle.characterId);
+        const characterRef = db.collection('characters').doc(battle.characterId);
+        const character = owned(await transaction.get(characterRef), ownerId, 'Personagem');
+        const settlement = finalizeRewards(battle, character, battle.updatedAt);
+        battle.result = settlement.result;
+        if (settlement.characterUpdates) transaction.update(characterRef, settlement.characterUpdates);
+      }
       const numbered = record(battle, events);
       transaction.update(ref, battle);
       return present(id, battle, catalog, numbered);

@@ -1,5 +1,10 @@
 const { db } = require('../config/firebase');
 const { createDeckService } = require('./deck.service');
+const { xpForNextLevel } = require('./progression.service');
+
+function presentCharacter(id, character) {
+  return { ...character, id, gold: character.gold ?? 0, xpToNextLevel: xpForNextLevel(character.level ?? 1) };
+}
 
 async function createCharacter({
   ownerId,
@@ -26,6 +31,7 @@ async function createCharacter({
 
       level: 1,
       xp: 0,
+      gold: 0,
 
       attributePoints: 0,
 
@@ -48,10 +54,7 @@ async function createCharacter({
     transaction.create(characterRef, characterData);
     transaction.create(deckRef, deckService.starterDeckData(ownerId, characterRef.id, starter));
 
-    return {
-      id: characterRef.id,
-      ...characterData,
-    };
+    return presentCharacter(characterRef.id, characterData);
   });
 }
 
@@ -61,10 +64,7 @@ async function getCharactersByOwner(ownerId) {
     .where('ownerId', '==', ownerId)
     .get();
 
-  return snapshot.docs.map((doc) => ({
-    ...doc.data(),
-    id: doc.id,
-  }));
+  return snapshot.docs.map((doc) => presentCharacter(doc.id, doc.data()));
 }
 
 module.exports = {
