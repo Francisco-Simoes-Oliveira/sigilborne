@@ -12,3 +12,5 @@ firebase-admin-key.json
 # Flutter
 .dart_tool/
 build/
+
+/docs

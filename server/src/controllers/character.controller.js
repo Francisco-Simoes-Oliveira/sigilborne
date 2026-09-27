@@ -2,6 +2,7 @@ const {
   createCharacter,
   getCharactersByOwner,
 } = require('../services/character.service');
+const { validId } = require('../domain/card-schema');
 
 async function create(req, res) {
   try {
@@ -10,16 +11,16 @@ async function create(req, res) {
     const {
       name,
       classId,
-    } = req.body;
+    } = req.body ?? {};
 
-    if (!name || name.trim().length < 3) {
+    if (typeof name !== 'string' || name.trim().length < 3) {
       return res.status(400).json({
         error:
             'O personagem precisa ter um nome com pelo menos 3 caracteres.',
       });
     }
 
-    if (!classId) {
+    if (!validId(classId)) {
       return res.status(400).json({
         error: 'Classe não informada.',
       });
@@ -33,6 +34,9 @@ async function create(req, res) {
 
     return res.status(201).json(character);
   } catch (error) {
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message, code: error.code });
+    }
     if (error.message === 'CLASS_NOT_FOUND') {
       return res.status(400).json({
         error: 'Classe inválida.',

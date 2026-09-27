@@ -1,0 +1,340 @@
+{
+  "deck": {
+    "id": "deck-a",
+    "ownerId": "user-a",
+    "characterId": "kael",
+    "name": "Deck Inicial",
+    "cards": [
+      {
+        "id": "warrior_slash",
+        "schemaVersion": 1,
+        "name": "Corte",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 100% da Força.",
+        "cost": 1,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_heavy_strike",
+        "schemaVersion": 1,
+        "name": "Golpe Pesado",
+        "classId": "warrior",
+        "description": "Causa dano físico igual a 180% da Força.",
+        "cost": 3,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.8,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_block",
+        "schemaVersion": 1,
+        "name": "Bloqueio",
+        "classId": "warrior",
+        "description": "Recebe Guarda por 1 turno: reduz o dano recebido em 50%.",
+        "cost": 1,
+        "type": "defense",
+        "tags": [
+          "defense",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.5
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_shield_bash",
+        "schemaVersion": 1,
+        "name": "Golpe de Escudo",
+        "classId": "warrior",
+        "description": "Causa dano físico de 120% da Defesa. Com Guarda, atordoa o alvo por 1 turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "defense",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "hasStatus",
+              "target": "self",
+              "status": "guard"
+            },
+            "effects": [
+              {
+                "type": "applyStatus",
+                "target": "enemy",
+                "status": "stunned",
+                "durationTurns": 1,
+                "stacks": 1,
+                "parameters": {}
+              }
+            ]
+          }
+        ],
+        "requirements": []
+      },
+      {
+        "id": "warrior_counter_attack",
+        "schemaVersion": 1,
+        "name": "Contra-Ataque",
+        "classId": "warrior",
+        "description": "Requer Guarda. Causa 120% da Força; é crítico (1,5×) se recebeu dano neste turno.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "counter"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [],
+        "conditionalEffects": [
+          {
+            "condition": {
+              "type": "eventOccurred",
+              "target": "self",
+              "event": "damageReceived",
+              "window": "currentTurn"
+            },
+            "effects": [
+              {
+                "type": "critical",
+                "multiplier": 1.5
+              }
+            ]
+          }
+        ],
+        "requirements": [
+          {
+            "type": "hasStatus",
+            "target": "self",
+            "status": "guard"
+          }
+        ]
+      },
+      {
+        "id": "warrior_charge",
+        "schemaVersion": 1,
+        "name": "Investida",
+        "classId": "warrior",
+        "description": "Causa 120% da Força e deixa o alvo Vulnerável por 1 turno (+20% de dano recebido).",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 1.2,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 1
+        },
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "vulnerable",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageTakenMultiplier": 1.2
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_taunt",
+        "schemaVersion": 1,
+        "name": "Provocar",
+        "classId": "warrior",
+        "description": "Provoca o alvo por 2 turnos, direcionando seus ataques ao usuário. Recebe Guarda de 30% por 1 turno.",
+        "cost": 1,
+        "type": "skill",
+        "tags": [
+          "control",
+          "guard"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "applyStatus",
+            "target": "enemy",
+            "status": "taunted",
+            "durationTurns": 2,
+            "stacks": 1,
+            "parameters": {}
+          },
+          {
+            "type": "applyStatus",
+            "target": "self",
+            "status": "guard",
+            "durationTurns": 1,
+            "stacks": 1,
+            "parameters": {
+              "damageReduction": 0.3
+            }
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_second_wind",
+        "schemaVersion": 1,
+        "name": "Segundo Fôlego",
+        "classId": "warrior",
+        "description": "Recupera vida igual a 200% da Defesa, sem ultrapassar a vida máxima.",
+        "cost": 2,
+        "type": "skill",
+        "tags": [
+          "heal"
+        ],
+        "damage": null,
+        "effects": [
+          {
+            "type": "restoreHealth",
+            "target": "self",
+            "scaling": "defense",
+            "multiplier": 2
+          }
+        ],
+        "conditionalEffects": [],
+        "requirements": []
+      },
+      {
+        "id": "warrior_double_strike",
+        "schemaVersion": 1,
+        "name": "Golpe Duplo",
+        "classId": "warrior",
+        "description": "Ataca duas vezes, causando 65% da Força por acerto.",
+        "cost": 2,
+        "type": "attack",
+        "tags": [
+          "attack",
+          "physical",
+          "melee",
+          "multiHit"
+        ],
+        "damage": {
+          "scaling": "strength",
+          "multiplier": 0.65,
+          "nature": "physical",
+          "element": "neutral",
+          "hits": 2
+        },
+        "effects": [],
+        "conditionalEffects": [],
+        "requirements": []
+      }
+    ],
+    "ultimateId": "warrior_unbreakable_wall",
+    "ultimate": {
+      "id": "warrior_unbreakable_wall",
+      "schemaVersion": 1,
+      "name": "Muralha Inquebrável",
+      "classId": "warrior",
+      "description": "Por 2 turnos, recebe Guarda de 80% e contra-ataca após cada ataque recebido com 80% da Força.",
+      "cost": 6,
+      "type": "ultimate",
+      "tags": [
+        "ultimate",
+        "guard",
+        "counter"
+      ],
+      "damage": null,
+      "effects": [
+        {
+          "type": "applyStatus",
+          "target": "self",
+          "status": "guard",
+          "durationTurns": 2,
+          "stacks": 1,
+          "parameters": {
+            "damageReduction": 0.8
+          }
+        },
+        {
+          "type": "applyStatus",
+          "target": "self",
+          "status": "counterStance",
+          "durationTurns": 2,
+          "stacks": 1,
+          "parameters": {
+            "trigger": "afterIncomingAttack",
+            "damage": {
+              "scaling": "strength",
+              "multiplier": 0.8,
+              "nature": "physical",
+              "element": "neutral",
+              "hits": 1
+            },
+            "allowTriggeredChains": false
+          }
+        }
+      ],
+      "conditionalEffects": [],
+      "requirements": []
+    }
+  }
+}

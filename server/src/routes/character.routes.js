@@ -7,8 +7,11 @@ const {
   create,
   listMine,
 } = require('../controllers/character.controller');
+const { getDeck } = require('../controllers/deck.controller');
 
 const router = express.Router();
+
+router.get('/characters/:id/deck', authenticate, getDeck);
 
 router.get(
   '/characters',

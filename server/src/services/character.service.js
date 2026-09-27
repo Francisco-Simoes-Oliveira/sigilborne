@@ -1,55 +1,58 @@
 const { db } = require('../config/firebase');
+const { createDeckService } = require('./deck.service');
 
 async function createCharacter({
   ownerId,
   name,
   classId,
 }) {
-  const classDoc = await db
-    .collection('classes')
-    .doc(classId)
-    .get();
+  const characterRef = db.collection('characters').doc();
+  const deckRef = db.collection('decks').doc();
+  const deckService = createDeckService(db);
+  return db.runTransaction(async transaction => {
+    const classDoc = await transaction.get(db.collection('classes').doc(classId));
 
-  if (!classDoc.exists) {
-    throw new Error('CLASS_NOT_FOUND');
-  }
+    if (!classDoc.exists) {
+      throw new Error('CLASS_NOT_FOUND');
+    }
 
-  const classData = classDoc.data();
+    const classData = classDoc.data();
+    const { starter } = await deckService.readStarterDeck(transaction, classId);
 
-  const characterData = {
-    ownerId,
-    name: name.trim(),
-    classId,
+    const characterData = {
+      ownerId,
+      name: name.trim(),
+      classId,
 
-    level: 1,
-    xp: 0,
+      level: 1,
+      xp: 0,
 
-    attributePoints: 0,
+      attributePoints: 0,
 
-    attributes: {
-      ...classData.baseAttributes,
-    },
+      attributes: {
+        ...classData.baseAttributes,
+      },
 
-    equipment: {
-      weapon: null,
-      armor: null,
-      accessory1: null,
-      accessory2: null,
-    },
+      equipment: {
+        weapon: null,
+        armor: null,
+        accessory1: null,
+        accessory2: null,
+      },
 
-    equippedDeckId: null,
+      equippedDeckId: deckRef.id,
 
-    createdAt: new Date(),
-  };
+      createdAt: new Date(),
+    };
 
-  const reference = await db
-    .collection('characters')
-    .add(characterData);
+    transaction.create(characterRef, characterData);
+    transaction.create(deckRef, deckService.starterDeckData(ownerId, characterRef.id, starter));
 
-  return {
-    id: reference.id,
-    ...characterData,
-  };
+    return {
+      id: characterRef.id,
+      ...characterData,
+    };
+  });
 }
 
 async function getCharactersByOwner(ownerId) {
@@ -59,8 +62,8 @@ async function getCharactersByOwner(ownerId) {
     .get();
 
   return snapshot.docs.map((doc) => ({
-    id: doc.id,
     ...doc.data(),
+    id: doc.id,
   }));
 }
 

@@ -29,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text.trim(),
       );
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       setState(() {
         error = e.message;
       });
@@ -39,6 +40,13 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
