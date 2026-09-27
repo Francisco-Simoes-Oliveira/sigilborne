@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
+import 'pages/create_character_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,7 @@ class SigilborneApp extends StatelessWidget {
       title: 'Sigilborne',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
+      routes: {'/create-character': (context) => const CreateCharacterPage()},
       home: const AuthGate(),
     );
   }

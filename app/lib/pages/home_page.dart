@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -72,6 +73,59 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(user.email ?? ''),
+                const SizedBox(height: 24),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      final result = await ApiService().getMe();
+
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Resposta da API'),
+                            content: Text(result.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } catch (e) {
+                      if (!context.mounted) {
+                        return;
+                      }
+
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
+                  },
+                  child: const Text('Testar API'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final character = await Navigator.pushNamed(
+                      context,
+                      '/create-character',
+                    );
+
+                    if (character != null) {
+                      print('Personagem criado: $character');
+                    }
+                  },
+                  child: const Text('Criar personagem'),
+                ),
               ],
             ),
           );
