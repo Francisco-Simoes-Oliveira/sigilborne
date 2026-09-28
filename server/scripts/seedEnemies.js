@@ -33,7 +33,7 @@ async function main() {
   const args = process.argv.slice(2);
   if (args.some(arg => !['--dry-run', '--check', '--migrate-rewards'].includes(arg))) throw new Error('Opção desconhecida. Use --dry-run, --check e/ou --migrate-rewards.');
   if (args.includes('--dry-run') && args.includes('--check')) throw new Error('Use --dry-run para validação local ou --check para consultar o Firestore.');
-  if (args.includes('--dry-run')) { console.log('Seed válido: Goblin v2, 40 XP e 25 Gold. Sem acesso ao Firestore.'); return; }
+  if (args.includes('--dry-run')) { console.log(`Seed válido: ${Object.keys(enemies).length} inimigos com recompensas. Sem acesso ao Firestore.`); return; }
   const { db } = require('../src/config/firebase');
   try { console.log(JSON.stringify(await seedEnemies(db, { migrateRewards: args.includes('--migrate-rewards'), check: args.includes('--check') }), null, 2)); }
   finally { await db.terminate(); }

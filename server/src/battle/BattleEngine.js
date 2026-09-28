@@ -2,8 +2,9 @@ const GameError = require('../domain/game-error');
 const rules = require('../data/game-rules');
 const { startCycle, rotate } = require('./CardCycle');
 const { matches } = require('./ConditionResolver');
-const { endActorTurn } = require('./StatusResolver');
+const { startActorTurn, endActorTurn } = require('./StatusResolver');
 const { dealDamage, resolveEffect, cardSupported } = require('./EffectResolver');
+const { hunterPet } = require('../data/combat-classes');
 
 const fail = (code, message) => { throw new GameError(code, 409, message); };
 
@@ -27,6 +28,7 @@ function availability(battle, card, ultimate = false) {
   let reason = null;
   if (battle.status !== 'active') reason = 'A batalha terminou.';
   else if (battle.currentActor !== 'player') reason = 'Aguarde seu turno.';
+  else if (battle.player.statuses.stunned || battle.player.statuses.frozen) reason = 'Você perdeu a ação neste turno.';
   else if (!cardSupported(card)) reason = 'Esta carta ainda não é suportada em batalha.';
   else if (!ultimate && !battle.player.hand.includes(card.id)) reason = 'A carta não está na mão.';
   else if (ultimate && battle.player.ultimate.charge < battle.player.ultimate.maxCharge) reason = 'A Ultimate ainda está carregando.';
@@ -40,15 +42,26 @@ function enemyTurn(battle, events) {
   battle.player.receivedDamageThisTurn = false;
   battle.enemy.receivedDamageThisTurn = false;
   events.push({ type: 'TURN_STARTED', actor: 'enemy' });
+  startActorTurn(battle, 'enemy', events);
+  if (finish(battle, events)) return;
   const index = battle.enemy.patternIndex;
   const actionId = battle.enemy.behavior.actions[index];
   const action = battle.enemy.behavior.definitions[actionId];
   battle.enemy.patternIndex = (index + 1) % battle.enemy.behavior.actions.length;
-  if (battle.enemy.statuses.stunned) {
-    events.push({ type: 'ACTION_SKIPPED', actor: 'enemy', reason: 'stunned' });
+  if (battle.enemy.statuses.stunned || battle.enemy.statuses.frozen) {
+    events.push({ type: 'ACTION_SKIPPED', actor: 'enemy', reason: battle.enemy.statuses.frozen ? 'frozen' : 'stunned' });
   } else {
+    for (const trap of battle.player.traps ?? []) {
+      if (trap.trigger !== 'beforeEnemyAttack' || trap.charges <= 0) continue;
+      trap.charges--;
+      events.push({ type: 'TRAP_TRIGGERED', source: 'player' });
+      for (const effect of trap.effects) resolveEffect(battle, 'player', effect, events);
+      if (finish(battle, events)) return;
+    }
+    battle.player.traps = (battle.player.traps ?? []).filter(trap => trap.charges > 0);
     events.push({ type: 'ENEMY_ACTION', actionId, name: action.name });
-    dealDamage(battle, 'enemy', 'player', action.damage, {}, events);
+    const hit = dealDamage(battle, 'enemy', 'player', action.damage, {}, events);
+    if (battle.player.hp > 0 && !hit.dodged) for (const effect of action.effects ?? []) resolveEffect(battle, 'enemy', effect, events);
     if (finish(battle, events)) return;
     const counter = battle.player.statuses.counterStance;
     if (counter) {
@@ -71,7 +84,7 @@ function startBattle({ ownerId, characterId, character, enemyId, enemy, deck }, 
   }
   const participant = (name, values) => ({
     name, hp: values.hp, maxHp: values.hp, attributes: structuredClone(values),
-    guard: 0, statuses: {}, receivedDamageThisTurn: false,
+    guard: 0, statuses: {}, element: 'neutral', elementModifiers: {}, natureModifiers: {}, receivedDamageThisTurn: false,
   });
   const battle = {
     schemaVersion: 1, ownerId, characterId, enemyId, classId: character.classId, deckId: deck.id,
@@ -79,22 +92,26 @@ function startBattle({ ownerId, characterId, character, enemyId, enemy, deck }, 
     normalCardIds: deck.cards.map(card => card.id),
     player: {
       ...participant(character.name, attributes), energy: attributes.maxEnergy, maxEnergy: attributes.maxEnergy,
+      pet: character.classId === 'hunter' ? structuredClone(hunterPet) : null, traps: [],
       ...startCycle(deck.cards.map(card => card.id), choose),
       ultimate: { id: deck.ultimate.id, charge: 0, maxCharge: 100 },
     },
-    enemy: { ...participant(enemy.name, enemy.attributes), behavior: structuredClone(enemy.behavior), patternIndex: 0 },
+    enemy: { ...participant(enemy.name, enemy.attributes), element: enemy.element ?? 'neutral',
+      elementModifiers: structuredClone(enemy.elementModifiers ?? {}), natureModifiers: structuredClone(enemy.natureModifiers ?? {}),
+      behavior: structuredClone(enemy.behavior), patternIndex: 0 },
     recentEvents: [], eventSequence: 0,
   };
   const events = [{ type: 'BATTLE_STARTED', enemyId }];
   for (const cardId of battle.player.hand) events.push({ type: 'CARD_DRAWN', cardId });
   if (battle.enemy.attributes.speed > battle.player.attributes.speed) enemyTurn(battle, events);
-  if (battle.status === 'active') { battle.currentActor = 'player'; events.push({ type: 'TURN_STARTED', actor: 'player' }); }
+  if (battle.status === 'active') { battle.currentActor = 'player'; events.push({ type: 'TURN_STARTED', actor: 'player' }); startActorTurn(battle, 'player', events); finish(battle, events); }
   return { battle, events };
 }
 
 function playCard(battle, card, target, ultimate = false) {
   if (battle.status !== 'active') fail('BATTLE_FINISHED', 'A batalha já terminou.');
   if (battle.currentActor !== 'player') fail('NOT_PLAYER_TURN', 'Aguarde seu turno.');
+  if (battle.player.statuses.stunned || battle.player.statuses.frozen) fail('ACTION_SKIPPED', 'Você perdeu a ação neste turno.');
   if (ultimate ? card.id !== battle.player.ultimate.id : !battle.player.hand.includes(card.id)) fail('CARD_NOT_IN_HAND', 'Esta carta não está disponível na mão.');
   if (!ultimate && card.type === 'ultimate') fail('INVALID_CARD', 'Use a ação separada da Ultimate.');
   if (target !== cardTarget(card)) fail('INVALID_TARGET', 'Alvo inválido para esta carta.');
@@ -128,6 +145,7 @@ function endTurn(battle) {
   if (battle.status !== 'active') fail('BATTLE_FINISHED', 'A batalha já terminou.');
   if (battle.currentActor !== 'player') fail('NOT_PLAYER_TURN', 'Aguarde seu turno.');
   const events = [{ type: 'TURN_ENDED', actor: 'player' }];
+  if (battle.player.statuses.stunned || battle.player.statuses.frozen) events.unshift({ type: 'ACTION_SKIPPED', actor: 'player', reason: battle.player.statuses.frozen ? 'frozen' : 'stunned' });
   endActorTurn(battle, 'player', events);
   enemyTurn(battle, events);
   if (battle.status !== 'active') return events;
@@ -136,6 +154,8 @@ function endTurn(battle) {
   const recovered = Math.min(rules.energyPerTurn, battle.player.maxEnergy - battle.player.energy);
   battle.player.energy += recovered;
   events.push({ type: 'ENERGY_RECOVERED', amount: recovered }, { type: 'TURN_STARTED', actor: 'player' });
+  startActorTurn(battle, 'player', events);
+  finish(battle, events);
   return events;
 }
 

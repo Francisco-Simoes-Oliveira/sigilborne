@@ -124,7 +124,7 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Text(
-                        'Esta primeira batalha está disponível para Guerreiro.',
+                        'Esta classe ainda não está disponível para batalha.',
                       ),
                     ),
                   if (_selection?.enemies.isEmpty ?? false)
@@ -143,6 +143,11 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             Text('Vida: ${enemy.hp}'),
+                            Text('Elemento: ${_elementName(enemy.element)}'),
+                            if (enemy.xp != null && enemy.gold != null)
+                              Text(
+                                'Recompensa: ${enemy.xp} XP · ${enemy.gold} Gold',
+                              ),
                             Text(enemy.description),
                             const SizedBox(height: 12),
                             FilledButton(
@@ -167,3 +172,11 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
           ),
   );
 }
+
+String _elementName(String element) => switch (element) {
+  'fire' => 'Fogo',
+  'ice' => 'Gelo',
+  'earth' => 'Terra',
+  'electric' => 'Elétrico',
+  _ => 'Neutro',
+};

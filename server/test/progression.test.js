@@ -205,12 +205,12 @@ test('controller ignores XP, gold and reward values supplied by Flutter', async 
 test('seed previews and explicitly migrates only the exact known v1 Goblin', async () => {
   const db = new FakeFirestore({ 'enemies/goblin': legacyEnemies.goblin });
   await assert.rejects(seedEnemies(db), /--migrate-rewards/);
-  assert.deepEqual(await seedEnemies(db, { migrateRewards: true, check: true }), { wouldCreate: 0, wouldUpdate: 1, unchanged: 0 });
+  assert.deepEqual(await seedEnemies(db, { migrateRewards: true, check: true }), { wouldCreate: 3, wouldUpdate: 1, unchanged: 0 });
   assert.equal(db.commits, 0);
   assert.deepEqual(db.data('enemies/goblin'), legacyEnemies.goblin);
-  assert.deepEqual(await seedEnemies(db, { migrateRewards: true }), { created: 0, updated: 1, unchanged: 0 });
+  assert.deepEqual(await seedEnemies(db, { migrateRewards: true }), { created: 3, updated: 1, unchanged: 0 });
   assert.deepEqual(db.data('enemies/goblin'), enemies.goblin);
-  assert.deepEqual(await seedEnemies(db, { migrateRewards: true }), { created: 0, updated: 0, unchanged: 1 });
+  assert.deepEqual(await seedEnemies(db, { migrateRewards: true }), { created: 0, updated: 0, unchanged: 4 });
 });
 
 test('seed refuses divergent legacy or modern documents even with migration enabled', async () => {
@@ -228,7 +228,7 @@ test('seed refuses divergent legacy or modern documents even with migration enab
 
 test('new seed preview has no writes and enemy reward schema rejects invalid amounts', async () => {
   const db = new FakeFirestore();
-  assert.deepEqual(await seedEnemies(db, { check: true }), { wouldCreate: 1, wouldUpdate: 0, unchanged: 0 });
+  assert.deepEqual(await seedEnemies(db, { check: true }), { wouldCreate: 4, wouldUpdate: 0, unchanged: 0 });
   assert.equal(db.paths('enemies').length, 0);
   for (const rewards of [null, { xp: -1, gold: 25 }, { xp: 1.5, gold: 0 }, { xp: 40, gold: Infinity }]) {
     assert.throws(() => validateEnemy({ ...enemies.goblin, rewards }), error => error.code === 'INVALID_REWARDS');

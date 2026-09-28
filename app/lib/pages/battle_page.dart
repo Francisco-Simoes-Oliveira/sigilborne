@@ -4,6 +4,33 @@ import '../services/api_service.dart';
 import '../widgets/logout_button.dart';
 import '../widgets/battle_result_panel.dart';
 
+String _elementName(String element) => switch (element) {
+  'fire' => 'Fogo',
+  'ice' => 'Gelo',
+  'earth' => 'Terra',
+  'electric' => 'Elétrico',
+  _ => 'Neutro',
+};
+String _statusName(String status) => switch (status) {
+  'burn' => 'Queimadura',
+  'chilled' => 'Resfriado',
+  'shield' => 'Escudo',
+  'wet' => 'Encharcado',
+  'focused' => 'Concentrado',
+  'frozen' => 'Congelado',
+  'dodge' => 'Esquiva',
+  'prepared' => 'Preparado',
+  'poison' => 'Veneno',
+  'bleed' => 'Sangramento',
+  'marked' => 'Marcado',
+  'rooted' => 'Imobilizado',
+  'stunned' => 'Atordoado',
+  'vulnerable' => 'Vulnerável',
+  'counterStance' => 'Contra-ataque',
+  'taunted' => 'Provocado',
+  _ => status,
+};
+
 class BattlePage extends StatefulWidget {
   const BattlePage({
     super.key,
@@ -100,6 +127,23 @@ class _BattlePageState extends State<BattlePage> {
               key: const ValueKey('player-energy'),
             ),
           if (actor.guard > 0) Text('Guarda: ${(actor.guard * 100).round()}%'),
+          if (actor.element != 'neutral')
+            Text('Elemento: ${_elementName(actor.element)}'),
+          if (actor.statuses.isNotEmpty)
+            Wrap(
+              spacing: 6,
+              children: [
+                for (final entry in actor.statuses.entries)
+                  Chip(
+                    label: Text(
+                      '${_statusName(entry.key)} (${(entry.value as Map)['remainingTurns'] ?? '?'})',
+                    ),
+                  ),
+              ],
+            ),
+          if (actor.pet != null) Text('Pet ativo: ${actor.pet!['name']}'),
+          if (actor.traps.isNotEmpty)
+            Text('Armadilhas ativas: ${actor.traps.length}'),
         ],
       ),
     ),
@@ -154,6 +198,8 @@ class _BattlePageState extends State<BattlePage> {
           children: [
             Text(card.name, style: Theme.of(context).textTheme.titleMedium),
             Text('${card.cost} de energia'),
+            if (card.elementName != null && card.damageNatureName != null)
+              Text('${card.damageNatureName} · ${card.elementName}'),
             Text(card.description),
             if (ultimate)
               Text(

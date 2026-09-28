@@ -5,11 +5,17 @@ class EnemyOption {
     : id = json['id'] as String,
       name = json['name'] as String,
       description = json['description'] as String,
-      hp = (json['attributes']['hp'] as num).toInt();
+      hp = (json['attributes']['hp'] as num).toInt(),
+      element = json['element'] as String? ?? 'neutral',
+      xp = (json['rewards']?['xp'] as num?)?.toInt(),
+      gold = (json['rewards']?['gold'] as num?)?.toInt();
   final String id;
   final String name;
   final String description;
   final int hp;
+  final String element;
+  final int? xp;
+  final int? gold;
 }
 
 class EnemySelection {
@@ -32,13 +38,23 @@ class BattleParticipant {
       maxHp = (json['maxHp'] as num).toInt(),
       energy = (json['energy'] as num?)?.toInt() ?? 0,
       maxEnergy = (json['maxEnergy'] as num?)?.toInt() ?? 0,
-      guard = (json['guard'] as num).toDouble();
+      guard = (json['guard'] as num).toDouble(),
+      element = json['element'] as String? ?? 'neutral',
+      statuses = Map<String, dynamic>.from(json['statuses'] as Map? ?? {}),
+      pet = json['pet'] == null
+          ? null
+          : Map<String, dynamic>.from(json['pet'] as Map),
+      traps = List<dynamic>.from(json['traps'] as List? ?? []);
   final String name;
   final int hp;
   final int maxHp;
   final int energy;
   final int maxEnergy;
   final double guard;
+  final String element;
+  final Map<String, dynamic> statuses;
+  final Map<String, dynamic>? pet;
+  final List<dynamic> traps;
 }
 
 class BattleEvent {
@@ -71,6 +87,25 @@ class BattleEvent {
       'TURN_STARTED' => 'Turno do $actor.',
       'TURN_ENDED' => 'Turno do $actor encerrado.',
       'ACTION_SKIPPED' => 'O $actor perdeu a ação por atordoamento.',
+      'ELEMENT_ADVANTAGE' =>
+        'Vantagem elemental: ${data['element']} (${data['multiplier']}×).',
+      'ELEMENT_RESISTED' =>
+        'Resistência elemental: ${data['element']} (${data['multiplier']}×).',
+      'ELEMENT_REACTION' =>
+        data['reaction'] == 'freeze'
+            ? 'Reação elemental: Encharcado + Gelo congelou o alvo.'
+            : 'Reação elemental: Encharcado + Eletricidade aumentou o dano.',
+      'STATUS_TICK' =>
+        '${data['status']} causou ${data['amount']} de dano em $who.',
+      'STATUS_REMOVED' => '${data['status']} foi consumido em $who.',
+      'SHIELD_ABSORBED' => 'Escudo absorveu ${data['amount']} de dano.',
+      'DODGE' => '$who esquivou do ataque.',
+      'PET_SUMMONED' => '${data['name']} foi invocado.',
+      'PET_ATTACK' => '${data['name']} atacou.',
+      'PET_EXPIRED' => '${data['name']} saiu de combate.',
+      'TRAP_SET' => 'Armadilha preparada.',
+      'TRAP_TRIGGERED' => 'Armadilha ativada antes do ataque inimigo.',
+      'TRAP_EXPIRED' => 'Armadilha expirou.',
       'STATUS_APPLIED' => '$who recebeu ${data['status']}.',
       'STATUS_EXPIRED' => '${data['status']} terminou.',
       'VICTORY' => 'VITÓRIA!',

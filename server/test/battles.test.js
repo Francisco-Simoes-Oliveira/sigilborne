@@ -23,8 +23,8 @@ function arrange(db, id, hand, updates = {}) {
 
 test('enemy seed supports dry data, repeat and conflict without overwrite', async () => {
   const db = new FakeFirestore();
-  assert.deepEqual(await seedEnemies(db), { created: 1, updated: 0, unchanged: 0 });
-  assert.deepEqual(await seedEnemies(db), { created: 0, updated: 0, unchanged: 1 });
+  assert.deepEqual(await seedEnemies(db), { created: 4, updated: 0, unchanged: 0 });
+  assert.deepEqual(await seedEnemies(db), { created: 0, updated: 0, unchanged: 4 });
   db.set('enemies/goblin', { name: 'Custom Goblin' });
   await assert.rejects(seedEnemies(db), /dados diferentes/);
   assert.equal(db.data('enemies/goblin').name, 'Custom Goblin');
@@ -60,7 +60,7 @@ test('enemies can be selected, latest fight can be reopened, and faster enemy ac
   assert.equal((await service.latestBattle('user-a', 'hero')).battle.id, response.battle.id);
 });
 
-test('foreign character/battle and unsupported class are blocked', async () => {
+test('foreign character/battle are blocked and mage can start', async () => {
   const { db, service, id } = await started();
   await assert.rejects(service.startBattle('user-b', { characterId: 'hero', enemyId: 'goblin' }), error => error.status === 403);
   await assert.rejects(service.getBattle('user-b', id), error => error.status === 403);
@@ -69,8 +69,9 @@ test('foreign character/battle and unsupported class are blocked', async () => {
   await assert.rejects(service.getBattle('user-a', 'absent'), error => error.status === 404);
   assert.equal(db.data(`battles/${id}`).version, 1);
   const mage = await fixture({ classId: 'mage' });
-  await assert.rejects(mage.service.startBattle('user-a', { characterId: 'hero', enemyId: 'goblin' }), errorCode('CLASS_NOT_SUPPORTED'));
-  assert.equal(mage.db.paths('battles').length, 0);
+  const mageBattle = await mage.service.startBattle('user-a', { characterId: 'hero', enemyId: 'goblin' });
+  assert.equal(mageBattle.battle.classId, 'mage');
+  assert.equal(mage.db.paths('battles').length, 1);
 });
 
 test('missing enemy and invalid deck cannot start a battle', async () => {

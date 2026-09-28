@@ -122,4 +122,4 @@ function validateCatalog(cards, starterDecks) {
   }
 }
 
-module.exports = { classIds, validId, validateCard, validateDeckIds, validateDeckCards, validateCatalog };
+module.exports = { classIds, validId, validateCard, validateEffect, validateDeckIds, validateDeckCards, validateCatalog };

@@ -67,8 +67,9 @@ function createBattleService(db, { choose } = {}) {
     return { enemies: snapshot.docs.map(doc => {
       const enemy = doc.data();
       validateEnemy(enemy);
-      return { id: doc.id, name: enemy.name, description: enemy.description ?? '', attributes: enemy.attributes };
-    }), supportedClassIds: ['warrior'] };
+      return { id: doc.id, name: enemy.name, description: enemy.description ?? '', attributes: enemy.attributes,
+        element: enemy.element ?? 'neutral', elementModifiers: enemy.elementModifiers ?? {}, rewards: enemy.rewards ?? null };
+    }), supportedClassIds: ['warrior', 'mage', 'rogue', 'hunter'] };
   }
 
   async function startBattle(ownerId, { characterId, enemyId }) {
@@ -79,7 +80,7 @@ function createBattleService(db, { choose } = {}) {
     return db.runTransaction(async transaction => {
       const characterRef = db.collection('characters').doc(characterId);
       const character = owned(await transaction.get(characterRef), ownerId, 'Personagem');
-      if (character.classId !== 'warrior') throw new GameError('CLASS_NOT_SUPPORTED', 422, 'Esta primeira batalha está disponível para Guerreiro. Os outros decks continuam disponíveis para consulta.');
+      if (!['warrior', 'mage', 'rogue', 'hunter'].includes(character.classId)) throw new GameError('CLASS_NOT_SUPPORTED', 422, 'Classe indisponível para batalha.');
       if (character.lastBattleId) {
         checkId(character.lastBattleId);
         const previousDoc = await transaction.get(db.collection('battles').doc(character.lastBattleId));
