@@ -35,6 +35,13 @@ class GameCard {
   // Retains generic effects/conditions for future features without interpreting combat.
   final Map<String, dynamic> data;
 
+  List<String> get tags =>
+      (data['tags'] as List?)?.whereType<String>().toList() ?? const [];
+  String? get imageUrl =>
+      data['imageUrl'] is String && (data['imageUrl'] as String).isNotEmpty
+      ? data['imageUrl'] as String
+      : null;
+
   String get typeName => switch (type) {
     'attack' => 'Ataque',
     'defense' => 'Defesa',

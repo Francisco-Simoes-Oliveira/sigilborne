@@ -6,6 +6,8 @@ import 'firebase_options.dart';
 import 'pages/character_session.dart';
 import 'pages/login_page.dart';
 import 'services/api_service.dart';
+import 'theme/app_theme.dart';
+import 'widgets/game_ui.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +25,7 @@ class SigilborneApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sigilborne',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: GameTheme.dark,
       home: const AuthGate(),
     );
   }
@@ -43,15 +45,18 @@ class AuthGate extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: GameBackdrop(
+              child: GameLoadingView(message: 'Abrindo os portões...'),
+            ),
           );
         }
 
         if (snapshot.hasError) {
           return const Scaffold(
-            body: Center(
-              child: Text(
-                'Não foi possível verificar a sessão. Reabra o aplicativo.',
+            body: GameBackdrop(
+              child: GameErrorView(
+                message:
+                    'Não foi possível verificar a sessão. Reabra o aplicativo.',
               ),
             ),
           );

@@ -55,6 +55,24 @@ class BattleParticipant {
   final Map<String, dynamic> statuses;
   final Map<String, dynamic>? pet;
   final List<dynamic> traps;
+
+  Iterable<BattleStatus> get activeStatuses => statuses.entries.map(
+    (entry) => BattleStatus.fromJson(
+      entry.key,
+      Map<String, dynamic>.from(entry.value as Map),
+    ),
+  );
+  String? get petName => pet?['name'] as String?;
+  int get trapCount => traps.length;
+}
+
+class BattleStatus {
+  BattleStatus.fromJson(this.id, Map<String, dynamic> json)
+    : remainingTurns = (json['remainingTurns'] as num?)?.toInt() ?? 0,
+      stacks = (json['stacks'] as num?)?.toInt() ?? 1;
+  final String id;
+  final int remainingTurns;
+  final int stacks;
 }
 
 class BattleEvent {
@@ -65,10 +83,17 @@ class BattleEvent {
   final int id;
   final String type;
   final Map<String, dynamic> data;
+  String? get target => data['target'] as String?;
+  String? get source => data['source'] as String?;
+  int? get amount => (data['amount'] as num?)?.toInt();
 
-  String describe(Map<String, GameCard> cards) {
-    final who = data['target'] == 'enemy' ? 'Inimigo' : 'Jogador';
-    final actor = data['actor'] == 'enemy' ? 'inimigo' : 'jogador';
+  String describe(
+    Map<String, GameCard> cards, {
+    String playerName = 'Jogador',
+    String enemyName = 'Inimigo',
+  }) {
+    final who = target == 'enemy' ? enemyName : playerName;
+    final actor = data['actor'] == 'enemy' ? enemyName : playerName;
     final name = cards[data['cardId']]?.name ?? 'Carta';
     return switch (type) {
       'BATTLE_STARTED' => 'A batalha começou.',
@@ -77,16 +102,16 @@ class BattleEvent {
       'CARD_DRAWN' => '$name entrou na mão.',
       'ENERGY_SPENT' => '${data['amount']} de energia consumida.',
       'ENERGY_RECOVERED' => '${data['amount']} de energia recuperada.',
-      'DAMAGE' => '$who recebeu ${data['amount']} de dano.',
+      'DAMAGE' => '$who sofreu ${data['amount']} de dano.',
       'HEAL' => '$who recuperou ${data['amount']} de vida.',
       'GUARD_GAINED' => '$who recebeu Guarda.',
       'GUARD_ABSORBED' => 'Guarda impediu ${data['amount']} de dano.',
       'CRITICAL' => 'Crítico de ${data['multiplier']}×!',
-      'ENEMY_ACTION' => 'Inimigo: ${data['name']}.',
+      'ENEMY_ACTION' => '$enemyName usou ${data['name']}.',
       'COUNTER_ATTACK' => 'O jogador contra-atacou.',
       'TURN_STARTED' => 'Turno do $actor.',
       'TURN_ENDED' => 'Turno do $actor encerrado.',
-      'ACTION_SKIPPED' => 'O $actor perdeu a ação por atordoamento.',
+      'ACTION_SKIPPED' => '$actor perdeu a ação.',
       'ELEMENT_ADVANTAGE' =>
         'Vantagem elemental: ${data['element']} (${data['multiplier']}×).',
       'ELEMENT_RESISTED' =>
