@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../services/user_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/auth_shell.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,8 +16,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
-  final UserService userService = UserService();
+  late final UserService userService = UserService();
 
   bool loading = false;
   String? error;
@@ -28,6 +31,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
       return;
     }
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      setState(() => error = 'Informe e-mail e senha.');
+      return;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      setState(() => error = 'As senhas não coincidem.');
+      return;
+    }
 
     setState(() {
       loading = true;
@@ -38,7 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: emailController.text.trim(),
-            password: passwordController.text.trim(),
+            password: passwordController.text,
           );
 
       final user = credential.user;
@@ -53,18 +65,21 @@ class _RegisterPageState extends State<RegisterPage> {
       );
 
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Conta criada com sucesso.')),
+        );
         Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
-          error = e.message;
+          error = authErrorMessage(e);
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          error = e.toString();
+          error = 'Não foi possível concluir o cadastro. Tente novamente.';
         });
       }
     } finally {
@@ -81,6 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
     usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
 
     super.dispose();
   }
@@ -89,57 +105,74 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Criar conta')),
-      body: Center(
-        child: SizedBox(
-          width: 400,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextField(
-                  controller: usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome de usuário',
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Senha'),
-                ),
-
-                const SizedBox(height: 24),
-
-                if (error != null) ...[
-                  Text(error!, style: const TextStyle(color: Colors.red)),
-
-                  const SizedBox(height: 16),
-                ],
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : register,
-                    child: loading
-                        ? const CircularProgressIndicator()
-                        : const Text('Criar conta'),
-                  ),
-                ),
-              ],
+      body: AuthShell(
+        title: 'Crie sua conta',
+        subtitle: 'Sua história no mundo de Sigilborne começa aqui.',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: usernameController,
+              enabled: !loading,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Nome de usuário',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
             ),
-          ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: emailController,
+              enabled: !loading,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                labelText: 'E-mail',
+                prefixIcon: Icon(Icons.mail_outline),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: passwordController,
+              enabled: !loading,
+              obscureText: true,
+              autofillHints: const [AutofillHints.newPassword],
+              onSubmitted: (_) {
+                if (!loading) register();
+              },
+              decoration: const InputDecoration(
+                labelText: 'Senha',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: confirmPasswordController,
+              enabled: !loading,
+              obscureText: true,
+              onSubmitted: (_) {
+                if (!loading) register();
+              },
+              decoration: const InputDecoration(
+                labelText: 'Confirmar senha',
+                prefixIcon: Icon(Icons.verified_user_outlined),
+              ),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(error!, style: const TextStyle(color: GameColors.danger)),
+            ],
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: loading ? null : register,
+              child: loading
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Criar conta'),
+            ),
+          ],
         ),
       ),
     );

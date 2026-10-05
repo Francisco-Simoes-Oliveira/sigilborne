@@ -1,35 +1,12 @@
 import 'package:flutter/material.dart';
 import '../models/battle_state.dart';
 import '../services/api_service.dart';
-import '../widgets/logout_button.dart';
+import '../theme/app_theme.dart';
+import '../widgets/battle_arena.dart';
 import '../widgets/battle_result_panel.dart';
-
-String _elementName(String element) => switch (element) {
-  'fire' => 'Fogo',
-  'ice' => 'Gelo',
-  'earth' => 'Terra',
-  'electric' => 'Elétrico',
-  _ => 'Neutro',
-};
-String _statusName(String status) => switch (status) {
-  'burn' => 'Queimadura',
-  'chilled' => 'Resfriado',
-  'shield' => 'Escudo',
-  'wet' => 'Encharcado',
-  'focused' => 'Concentrado',
-  'frozen' => 'Congelado',
-  'dodge' => 'Esquiva',
-  'prepared' => 'Preparado',
-  'poison' => 'Veneno',
-  'bleed' => 'Sangramento',
-  'marked' => 'Marcado',
-  'rooted' => 'Imobilizado',
-  'stunned' => 'Atordoado',
-  'vulnerable' => 'Vulnerável',
-  'counterStance' => 'Contra-ataque',
-  'taunted' => 'Provocado',
-  _ => status,
-};
+import '../widgets/game_card_view.dart';
+import '../widgets/game_ui.dart';
+import '../widgets/logout_button.dart';
 
 class BattlePage extends StatefulWidget {
   const BattlePage({
@@ -50,11 +27,81 @@ class _BattlePageState extends State<BattlePage> {
   bool _busy = true;
   bool _needsSync = false;
   String? _error;
+  BattleEvent? _playerFeedback;
+  BattleEvent? _enemyFeedback;
+  bool _playerCritical = false;
+  bool _enemyCritical = false;
+  String? _cue;
+  int _cueSerial = 0;
 
   @override
   void initState() {
     super.initState();
     _refresh();
+  }
+
+  void _adopt(BattleState next, {bool animate = false}) {
+    final previous = _battle;
+    final lastId = previous == null || previous.recentEvents.isEmpty
+        ? -1
+        : previous.recentEvents.last.id;
+    final fresh = animate
+        ? next.recentEvents.where((e) => e.id > lastId).toList()
+        : <BattleEvent>[];
+    BattleEvent? feedback(String target) {
+      for (final event in fresh.reversed) {
+        if (event.target == target &&
+            ['DAMAGE', 'HEAL', 'STATUS_TICK'].contains(event.type)) {
+          return event;
+        }
+      }
+      return null;
+    }
+
+    final important = <String>{
+      'CRITICAL',
+      'ENEMY_ACTION',
+      'TURN_STARTED',
+      'CARD_DRAWN',
+      'STATUS_APPLIED',
+      'ENERGY_SPENT',
+      'ENERGY_RECOVERED',
+    };
+    BattleEvent? cueEvent;
+    for (final event in fresh.reversed) {
+      if (important.contains(event.type)) {
+        cueEvent = event;
+        break;
+      }
+    }
+    final cue = switch (cueEvent?.type) {
+      'TURN_STARTED' =>
+        cueEvent!.data['actor'] == 'enemy' ? 'TURNO DO INIMIGO' : 'SEU TURNO',
+      'ENEMY_ACTION' => '${next.enemy.name} usou ${cueEvent!.data['name']}',
+      'CRITICAL' => 'CRÍTICO!',
+      'CARD_DRAWN' =>
+        'Nova carta: ${next.cards[cueEvent!.data['cardId']]?.name ?? 'carta'}',
+      'STATUS_APPLIED' =>
+        '${GameVisual.statusName(cueEvent!.data['status'] as String? ?? '')} aplicado',
+      'ENERGY_SPENT' => '−${cueEvent!.amount ?? 0} Energia',
+      'ENERGY_RECOVERED' => '+${cueEvent!.amount ?? 0} Energia',
+      _ => null,
+    };
+    _cueSerial++;
+
+    setState(() {
+      _battle = next;
+      _playerFeedback = feedback('player');
+      _enemyFeedback = feedback('enemy');
+      _playerCritical = fresh.any(
+        (e) => e.type == 'CRITICAL' && e.target == 'player',
+      );
+      _enemyCritical = fresh.any(
+        (e) => e.type == 'CRITICAL' && e.target == 'enemy',
+      );
+      _cue = cue;
+      _needsSync = false;
+    });
   }
 
   Future<void> _refresh() async {
@@ -64,15 +111,11 @@ class _BattlePageState extends State<BattlePage> {
     });
     try {
       final battle = await widget.apiService.getBattle(widget.battleId);
-      if (!mounted) return;
-      setState(() {
-        _battle = battle;
-        _needsSync = false;
-      });
+      if (mounted) _adopt(battle);
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = error.toString();
+          _error = friendlyError(error);
           _needsSync = true;
         });
       }
@@ -91,73 +134,60 @@ class _BattlePageState extends State<BattlePage> {
     });
     try {
       final battle = await command(_battle!);
-      if (mounted) setState(() => _battle = battle);
+      if (mounted) _adopt(battle, animate: true);
     } catch (error) {
-      // Never replay an uncertain command: fetch the authoritative state first.
+      // Never replay an uncertain command; fetch the authoritative state.
       try {
         final latest = await widget.apiService.getBattle(widget.battleId);
-        if (mounted) setState(() => _battle = latest);
+        if (mounted) _adopt(latest, animate: true);
       } catch (_) {
         if (mounted) setState(() => _needsSync = true);
       }
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = friendlyError(error));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  Widget _participant(BattleParticipant actor, String key) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(actor.name, style: Theme.of(context).textTheme.titleLarge),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: Text(
-              'HP: ${actor.hp} / ${actor.maxHp}',
-              key: ValueKey('$key-${actor.hp}'),
-            ),
-          ),
-          LinearProgressIndicator(value: actor.hp / actor.maxHp),
-          if (key == 'player')
-            Text(
-              'Energia: ${actor.energy} / ${actor.maxEnergy}',
-              key: const ValueKey('player-energy'),
-            ),
-          if (actor.guard > 0) Text('Guarda: ${(actor.guard * 100).round()}%'),
-          if (actor.element != 'neutral')
-            Text('Elemento: ${_elementName(actor.element)}'),
-          if (actor.statuses.isNotEmpty)
-            Wrap(
-              spacing: 6,
-              children: [
-                for (final entry in actor.statuses.entries)
-                  Chip(
-                    label: Text(
-                      '${_statusName(entry.key)} (${(entry.value as Map)['remainingTurns'] ?? '?'})',
-                    ),
-                  ),
-              ],
-            ),
-          if (actor.pet != null) Text('Pet ativo: ${actor.pet!['name']}'),
-          if (actor.traps.isNotEmpty)
-            Text('Armadilhas ativas: ${actor.traps.length}'),
-        ],
+  Widget _card(String cardId, int index, {bool ultimate = false}) {
+    final state = _battle!;
+    final action = state.actions[cardId]!;
+    return GameCardView(
+      key: ValueKey(ultimate ? 'battle-ultimate' : 'hand-$index'),
+      card: state.cards[cardId]!,
+      compact: true,
+      ultimate: ultimate,
+      canPlay: action.canPlay && !_needsSync,
+      busy: _busy,
+      reason: action.reason,
+      actionKey: ValueKey(ultimate ? 'use-ultimate' : 'play-$index'),
+      onPlay: () => _command(
+        (latest) => ultimate
+            ? widget.apiService.playUltimate(
+                battleId: latest.id,
+                target: action.target,
+                expectedVersion: latest.version,
+              )
+            : widget.apiService.playCard(
+                battleId: latest.id,
+                cardId: cardId,
+                target: action.target,
+                expectedVersion: latest.version,
+              ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _result(BattleState battle) => Center(
     child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 720),
+      constraints: const BoxConstraints(maxWidth: 760),
       child: ListView(
         key: const ValueKey('battle-result-view'),
         padding: const EdgeInsets.all(16),
         children: [
           if (_busy) const LinearProgressIndicator(),
-          if (_error != null) Text(_error!),
+          if (_error != null)
+            Padding(padding: const EdgeInsets.all(8), child: Text(_error!)),
           BattleResultPanel(
             battle: battle,
             onHome: _busy
@@ -172,66 +202,248 @@ class _BattlePageState extends State<BattlePage> {
                         route.settings.name == '/enemies' || route.isFirst,
                   ),
           ),
-          ExpansionTile(
-            title: const Text('Ver log da batalha'),
-            children: [
-              for (final event in battle.recentEvents.reversed.take(20))
-                ListTile(title: Text(event.describe(battle.cards))),
-            ],
-          ),
+          const SizedBox(height: 16),
+          BattleEventFeed(battle: battle),
         ],
       ),
     ),
   );
 
-  Widget _card(String cardId, int index, {bool ultimate = false}) {
-    final state = _battle!;
-    final card = state.cards[cardId]!;
-    final action = state.actions[cardId]!;
-    return Card(
-      key: ValueKey(ultimate ? 'battle-ultimate' : 'hand-$index'),
-      color: ultimate ? Theme.of(context).colorScheme.secondaryContainer : null,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(card.name, style: Theme.of(context).textTheme.titleMedium),
-            Text('${card.cost} de energia'),
-            if (card.elementName != null && card.damageNatureName != null)
-              Text('${card.damageNatureName} · ${card.elementName}'),
-            Text(card.description),
-            if (ultimate)
-              Text(
-                'Carga: ${state.ultimateCharge} / ${state.ultimateMaxCharge}',
-              ),
-            if (action.reason != null) Text(action.reason!),
-            const SizedBox(height: 8),
-            FilledButton(
-              key: ValueKey(ultimate ? 'use-ultimate' : 'play-$index'),
-              onPressed: _busy || _needsSync || !action.canPlay
-                  ? null
-                  : () => _command(
-                      (latest) => ultimate
-                          ? widget.apiService.playUltimate(
-                              battleId: latest.id,
-                              target: action.target,
-                              expectedVersion: latest.version,
-                            )
-                          : widget.apiService.playCard(
-                              battleId: latest.id,
-                              cardId: cardId,
-                              target: action.target,
-                              expectedVersion: latest.version,
+  Widget _ultimate(BattleState battle) => AnimatedScale(
+    scale: battle.ultimateCharge >= battle.ultimateMaxCharge ? 1.02 : 1,
+    duration: const Duration(milliseconds: 250),
+    child: Column(
+      children: [
+        GameProgressBar(
+          label: 'Carga',
+          value: battle.ultimateCharge,
+          max: battle.ultimateMaxCharge,
+          color: GameColors.ultimate,
+        ),
+        const SizedBox(height: 12),
+        if (battle.ultimateCharge >= battle.ultimateMaxCharge)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: GameBadge(
+              label: 'Ultimate carregada',
+              icon: Icons.stars,
+              color: GameColors.ultimate,
+            ),
+          ),
+        _card(battle.ultimateId, 0, ultimate: true),
+      ],
+    ),
+  );
+
+  Widget _active(BattleState battle) => LayoutBuilder(
+    builder: (context, constraints) {
+      final wide = constraints.maxWidth >= GameLayout.wide;
+      final medium = constraints.maxWidth >= GameLayout.compact;
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: GameLayout.maxContent),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (_busy) const LinearProgressIndicator(),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: GameColors.danger),
+                  ),
+                ),
+              if (_needsSync)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: FilledButton.icon(
+                    onPressed: _busy ? null : _refresh,
+                    icon: const Icon(Icons.sync),
+                    label: const Text('Sincronizar batalha'),
+                  ),
+                ),
+              Row(
+                children: [
+                  const Icon(Icons.sports_martial_arts, color: GameColors.gold),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Turno ${battle.turn}',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      child: _cue == null
+                          ? const SizedBox.shrink()
+                          : TweenAnimationBuilder<double>(
+                              key: ValueKey('cue-$_cueSerial'),
+                              tween: Tween(begin: 1, end: 0),
+                              duration: const Duration(milliseconds: 900),
+                              builder: (context, progress, child) => Opacity(
+                                opacity: progress,
+                                child: IgnorePointer(
+                                  ignoring: progress < 0.01,
+                                  child: child,
+                                ),
+                              ),
+                              child: Tooltip(
+                                message: _cue!,
+                                child: Text(
+                                  _cue!,
+                                  textAlign: TextAlign.end,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: GameColors.gold,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             ),
                     ),
-              child: Text(ultimate ? 'Usar Ultimate' : 'Usar carta'),
-            ),
-          ],
+                  ),
+                  if (battle.catalogChanged)
+                    const Tooltip(
+                      message:
+                          'O catálogo mudou; esta batalha usa as cartas com que começou.',
+                      child: Icon(
+                        Icons.info_outline,
+                        color: GameColors.warning,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (medium)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: BattleParticipantPanel(
+                        participant: battle.player,
+                        isPlayer: true,
+                        feedback: _playerFeedback,
+                        critical: _playerCritical,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 44,
+                      ),
+                      child: Text(
+                        'VS',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: GameColors.gold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: BattleParticipantPanel(
+                        participant: battle.enemy,
+                        isPlayer: false,
+                        feedback: _enemyFeedback,
+                        critical: _enemyCritical,
+                      ),
+                    ),
+                  ],
+                )
+              else ...[
+                BattleParticipantPanel(
+                  participant: battle.enemy,
+                  isPlayer: false,
+                  feedback: _enemyFeedback,
+                  critical: _enemyCritical,
+                ),
+                const SizedBox(height: 12),
+                BattleParticipantPanel(
+                  participant: battle.player,
+                  isPlayer: true,
+                  feedback: _playerFeedback,
+                  critical: _playerCritical,
+                ),
+              ],
+              const SizedBox(height: 10),
+              const GameSectionHeading(
+                title: 'Mão (3 cartas)',
+                icon: Icons.style_outlined,
+              ),
+              const SizedBox(height: 8),
+              if (wide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (
+                      var index = 0;
+                      index < battle.hand.length;
+                      index++
+                    ) ...[
+                      if (index > 0) const SizedBox(width: 12),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 230),
+                          child: KeyedSubtree(
+                            key: ValueKey('slot-$index-${battle.hand[index]}'),
+                            child: _card(battle.hand[index], index),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(width: 18),
+                    SizedBox(width: 248, child: _ultimate(battle)),
+                  ],
+                )
+              else ...[
+                for (var index = 0; index < battle.hand.length; index++) ...[
+                  Center(
+                    child: SizedBox(
+                      width: medium ? 410 : double.infinity,
+                      child: _card(battle.hand[index], index),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                Center(
+                  child: SizedBox(
+                    width: medium ? 410 : double.infinity,
+                    child: _ultimate(battle),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 18),
+              GamePanel(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
+                child: ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  title: const Text('Fila do ciclo (6 cartas)'),
+                  subtitle: const Text(
+                    'As próximas cartas que entrarão na mão.',
+                  ),
+                  children: [
+                    for (var index = 0; index < battle.queue.length; index++)
+                      ListTile(
+                        dense: true,
+                        leading: Text('${index + 1}'),
+                        title: Text(battle.cards[battle.queue[index]]!.name),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              BattleEventFeed(battle: battle),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -248,101 +460,43 @@ class _BattlePageState extends State<BattlePage> {
           LogoutButton(onSignOut: widget.onSignOut),
         ],
       ),
-      body: battle == null
-          ? Center(
-              child: _busy
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error ?? 'Batalha indisponível.'),
-                        TextButton(
-                          onPressed: _refresh,
-                          child: const Text('Tentar novamente'),
-                        ),
-                      ],
-                    ),
-            )
-          : battle.status != 'active'
-          ? _result(battle)
-          : Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 900),
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (_busy) const LinearProgressIndicator(),
-                    if (_error != null)
-                      Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    if (_needsSync)
-                      FilledButton(
-                        onPressed: _busy ? null : _refresh,
-                        child: const Text('Sincronizar batalha'),
-                      ),
-                    Text(
-                      'Turno ${battle.turn}',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    _participant(battle.enemy, 'enemy'),
-                    _participant(battle.player, 'player'),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Mão (3 cartas)',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    for (var index = 0; index < battle.hand.length; index++)
-                      _card(battle.hand[index], index),
-                    const SizedBox(height: 12),
-                    _card(battle.ultimateId, 0, ultimate: true),
-                    ExpansionTile(
-                      title: const Text('Fila do ciclo (6 cartas)'),
-                      children: [
-                        for (
-                          var index = 0;
-                          index < battle.queue.length;
-                          index++
-                        )
-                          ListTile(
-                            title: Text(
-                              '${index + 1}. ${battle.cards[battle.queue[index]]!.name}',
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Últimos eventos',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    for (final event in battle.recentEvents.reversed.take(20))
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        child: Text(event.describe(battle.cards)),
-                      ),
-                  ],
-                ),
-              ),
-            ),
+      body: GameBackdrop(
+        child: battle == null
+            ? _busy
+                  ? const GameLoadingView(message: 'Entrando na arena...')
+                  : GameErrorView(
+                      message: _error ?? 'Batalha indisponível.',
+                      onRetry: _refresh,
+                    )
+            : battle.status == 'active'
+            ? _active(battle)
+            : _result(battle),
+      ),
       bottomNavigationBar: battle == null || battle.status != 'active'
           ? null
           : SafeArea(
               minimum: const EdgeInsets.all(12),
-              child: FilledButton(
-                key: const ValueKey('end-turn'),
-                onPressed: _busy || _needsSync || !battle.canEndTurn
-                    ? null
-                    : () => _command(
-                        (latest) => widget.apiService.endTurn(
-                          battleId: latest.id,
-                          expectedVersion: latest.version,
-                        ),
-                      ),
-                child: const Text('Finalizar Turno'),
+              child: Center(
+                heightFactor: 1,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      key: const ValueKey('end-turn'),
+                      onPressed: _busy || _needsSync || !battle.canEndTurn
+                          ? null
+                          : () => _command(
+                              (latest) => widget.apiService.endTurn(
+                                battleId: latest.id,
+                                expectedVersion: latest.version,
+                              ),
+                            ),
+                      icon: const Icon(Icons.skip_next),
+                      label: const Text('Finalizar Turno'),
+                    ),
+                  ),
+                ),
               ),
             ),
     );

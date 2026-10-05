@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/character.dart';
 import '../models/character_deck.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/game_card_view.dart';
+import '../widgets/game_ui.dart';
 import '../widgets/logout_button.dart';
 
 class DeckPage extends StatefulWidget {
@@ -54,94 +57,106 @@ class _DeckPageState extends State<DeckPage> {
       setState(() => _deck = deck);
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      setState(() => _error = friendlyError(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   Widget _card(GameCard card, {required Key key, bool ultimate = false}) =>
-      Card(
-        key: key,
-        color: ultimate
-            ? Theme.of(context).colorScheme.secondaryContainer
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(card.name, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Chip(
-                    avatar: const Icon(Icons.bolt, size: 18),
-                    label: Text('${card.cost} energia'),
-                  ),
-                  Chip(label: Text(card.typeName)),
-                  if (card.elementName != null)
-                    Chip(label: Text(card.elementName!)),
-                  if (card.damageNatureName != null)
-                    Chip(label: Text(card.damageNatureName!)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(card.description),
-            ],
-          ),
-        ),
-      );
+      GameCardView(key: key, card: card, ultimate: ultimate);
 
   Widget _body() {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) {
+      return const GameLoadingView(message: 'Abrindo seu grimório...');
+    }
     if (_error != null) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(24),
-        children: [
-          const Icon(Icons.style_outlined, size: 48),
-          const SizedBox(height: 16),
-          Text(_error!, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          Center(
-            child: FilledButton(
-              onPressed: _loadDeck,
-              child: const Text('Tentar novamente'),
-            ),
-          ),
-        ],
+        children: [GameErrorView(message: _error!, onRetry: _loadDeck)],
       );
     }
     final deck = _deck!;
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(deck.name, style: Theme.of(context).textTheme.headlineSmall),
-        Text('${widget.character.name} • ${widget.character.className}'),
-        const SizedBox(height: 8),
-        const Text('10 cartas no total: 9 normais + 1 Ultimate'),
-        const SizedBox(height: 24),
-        Text('Ultimate', style: Theme.of(context).textTheme.titleLarge),
-        const Text('Separada do ciclo da mão de 3 cartas.'),
-        const SizedBox(height: 8),
-        _card(
-          deck.ultimate,
-          key: const ValueKey('deck-ultimate'),
-          ultimate: true,
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Cartas normais (9)',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        for (var index = 0; index < deck.cards.length; index++)
-          _card(deck.cards[index], key: ValueKey('deck-card-$index')),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 950
+            ? 3
+            : constraints.maxWidth >= 610
+            ? 2
+            : 1;
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          children: [
+            GamePanel(
+              child: Row(
+                children: [
+                  const SigilMark(size: 60),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          deck.name,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        Text(
+                          '${widget.character.name} • ${widget.character.className}',
+                        ),
+                        const Text(
+                          '10 cartas no total: 9 normais + 1 Ultimate',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const GameSectionHeading(
+              title: 'Ultimate',
+              subtitle: 'Separada do ciclo da mão de 3 cartas.',
+              icon: Icons.stars_outlined,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SizedBox(
+                width: columns == 1 ? double.infinity : 310,
+                child: _card(
+                  deck.ultimate,
+                  key: const ValueKey('deck-ultimate'),
+                  ultimate: true,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const GameSectionHeading(
+              title: 'Cartas normais (9)',
+              subtitle: 'Seu arsenal para cada turno.',
+              icon: Icons.style_outlined,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (var index = 0; index < deck.cards.length; index++)
+                  SizedBox(
+                    width:
+                        (constraints.maxWidth - 12 * (columns - 1)) / columns,
+                    child: _card(
+                      deck.cards[index],
+                      key: ValueKey('deck-card-$index'),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -158,11 +173,13 @@ class _DeckPageState extends State<DeckPage> {
         LogoutButton(onSignOut: widget.onSignOut),
       ],
     ),
-    body: SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: RefreshIndicator(onRefresh: _loadDeck, child: _body()),
+    body: GameBackdrop(
+      child: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: GameLayout.maxContent),
+            child: RefreshIndicator(onRefresh: _loadDeck, child: _body()),
+          ),
         ),
       ),
     ),

@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:app/pages/register_page.dart';
+import '../theme/app_theme.dart';
+import '../widgets/auth_shell.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.signIn});
+  final Future<void> Function(String email, String password)? signIn;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -18,21 +21,37 @@ class _LoginPageState extends State<LoginPage> {
   String? error;
 
   Future<void> login() async {
+    if (emailController.text.trim().isEmpty ||
+        passwordController.text.isEmpty) {
+      setState(() => error = 'Informe e-mail e senha.');
+      return;
+    }
     setState(() {
       loading = true;
       error = null;
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+      if (widget.signIn != null) {
+        await widget.signIn!(
+          emailController.text.trim(),
+          passwordController.text,
+        );
+      } else {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text,
+        );
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       setState(() {
-        error = e.message;
+        error = authErrorMessage(e);
       });
+    } catch (_) {
+      if (mounted) {
+        setState(() => error = 'Não foi possível entrar. Tente novamente.');
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -52,63 +71,60 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: 400,
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'SIGILBORNE',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 32),
-
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Senha'),
-                ),
-
-                const SizedBox(height: 16),
-
-                if (error != null)
-                  Text(error!, style: const TextStyle(color: Colors.red)),
-
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : login,
-                    child: loading
-                        ? const CircularProgressIndicator()
-                        : const Text('Entrar'),
-                  ),
-                ),
-
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
+      body: AuthShell(
+        title: 'Entre na aventura',
+        subtitle: 'Acesse sua conta para continuar sua jornada.',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                labelText: 'E-mail',
+                prefixIcon: Icon(Icons.mail_outline),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              onSubmitted: (_) {
+                if (!loading) login();
+              },
+              autofillHints: const [AutofillHints.password],
+              decoration: const InputDecoration(
+                labelText: 'Senha',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(error!, style: const TextStyle(color: GameColors.danger)),
+            ],
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: loading ? null : login,
+              child: loading
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Entrar'),
+            ),
+            const SizedBox(height: 7),
+            TextButton(
+              onPressed: loading
+                  ? null
+                  : () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const RegisterPage()),
-                    );
-                  },
-                  child: const Text('Criar conta'),
-                ),
-              ],
+                    ),
+              child: const Text('Criar conta'),
             ),
-          ),
+          ],
         ),
       ),
     );

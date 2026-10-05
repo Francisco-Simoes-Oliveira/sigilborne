@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/character.dart';
 import '../models/battle_state.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/game_ui.dart';
 import '../widgets/logout_button.dart';
 
 class EnemySelectionPage extends StatefulWidget {
@@ -47,7 +49,7 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
         _latest = latest;
       });
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = friendlyError(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,7 +72,7 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
       await Navigator.pushNamed<void>(context, '/battle', arguments: battle);
       if (mounted) await _load();
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = friendlyError(error));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -82,101 +84,209 @@ class _EnemySelectionPageState extends State<EnemySelectionPage> {
       title: const Text('Selecionar inimigo'),
       actions: [LogoutButton(onSignOut: widget.onSignOut)],
     ),
-    body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: ListView(
-                padding: const EdgeInsets.all(24),
-                children: [
-                  Text(
-                    widget.character.name,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  if (_error != null) ...[
-                    Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+    body: GameBackdrop(
+      child: _loading
+          ? const GameLoadingView(message: 'Procurando adversários...')
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: GameLayout.maxContent,
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    GameSectionHeading(
+                      title: 'Escolha seu desafio',
+                      subtitle: 'Herói: ${widget.character.name}',
+                      icon: Icons.sports_martial_arts,
                     ),
-                    TextButton(
-                      onPressed: _busy ? null : _load,
-                      child: const Text('Atualizar'),
-                    ),
-                  ],
-                  if (_latest != null) ...[
                     const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: _busy ? null : () => _open(),
-                      child: Text(
-                        _latest!.status == 'active'
-                            ? 'Continuar batalha'
-                            : 'Ver última batalha',
+                    if (_error != null) ...[
+                      GamePanel(
+                        accent: GameColors.danger,
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: GameColors.danger),
+                        ),
                       ),
-                    ),
-                  ],
-                  if (_selection != null &&
-                      !_selection!.supportedClassIds.contains(
-                        widget.character.classId,
-                      ))
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text(
-                        'Esta classe ainda não está disponível para batalha.',
+                      TextButton(
+                        onPressed: _busy ? null : _load,
+                        child: const Text('Atualizar'),
                       ),
-                    ),
-                  if (_selection?.enemies.isEmpty ?? false)
-                    const Text(
-                      'Nenhum inimigo cadastrado. Execute o seed de inimigos no servidor.',
-                    ),
-                  for (final enemy in _selection?.enemies ?? <EnemyOption>[])
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
+                    ],
+                    if (_latest != null) ...[
+                      const SizedBox(height: 16),
+                      GamePanel(
+                        accent: _latest!.status == 'active'
+                            ? GameColors.gold
+                            : null,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              enemy.name,
-                              style: Theme.of(context).textTheme.titleLarge,
+                            const GameSectionHeading(
+                              title: 'Sua última batalha',
+                              icon: Icons.history,
                             ),
-                            Text('Vida: ${enemy.hp}'),
-                            Text('Elemento: ${_elementName(enemy.element)}'),
-                            if (enemy.xp != null && enemy.gold != null)
-                              Text(
-                                'Recompensa: ${enemy.xp} XP · ${enemy.gold} Gold',
+                            if (_latest!.status == 'active') ...[
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Existe uma batalha em andamento.',
+                                style: TextStyle(
+                                  color: GameColors.gold,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            Text(enemy.description),
+                            ],
                             const SizedBox(height: 12),
-                            FilledButton(
-                              onPressed:
-                                  _busy ||
-                                      !_selection!.supportedClassIds.contains(
-                                        widget.character.classId,
-                                      ) ||
-                                      _latest?.status == 'active'
-                                  ? null
-                                  : () => _open(enemy: enemy),
-                              child: const Text('Começar luta'),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _busy ? null : () => _open(),
+                                icon: const Icon(Icons.play_arrow),
+                                label: Text(
+                                  _latest!.status == 'active'
+                                      ? 'Continuar batalha'
+                                      : 'Ver última batalha',
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
+                    ],
+                    if (_selection != null &&
+                        !_selection!.supportedClassIds.contains(
+                          widget.character.classId,
+                        ))
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Text(
+                          'Esta classe ainda não está disponível para batalha.',
+                        ),
+                      ),
+                    if (_selection?.enemies.isEmpty ?? false)
+                      const GameEmptyState(
+                        title: 'Arena vazia',
+                        message:
+                            'Nenhum inimigo cadastrado. Execute o seed de inimigos no servidor.',
+                        icon: Icons.hourglass_empty,
+                      ),
+                    const SizedBox(height: 20),
+                    if (_selection?.enemies.isNotEmpty ?? false)
+                      const GameSectionHeading(
+                        title: 'Adversários',
+                        subtitle:
+                            'Veja o elemento e a recompensa antes de lutar.',
+                        icon: Icons.gps_fixed,
+                      ),
+                    const SizedBox(height: 12),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.maxWidth >= 760 ? 2 : 1;
+                        final enemies = _selection?.enemies ?? <EnemyOption>[];
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: enemies.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                mainAxisExtent: 250,
+                                mainAxisSpacing: 14,
+                                crossAxisSpacing: 14,
+                              ),
+                          itemBuilder: (context, index) {
+                            final enemy = enemies[index];
+                            final color = GameColors.forElement(enemy.element);
+                            return GamePanel(
+                              accent: color,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        GameVisual.elementIcon(enemy.element),
+                                        color: color,
+                                        size: 30,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          enemy.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleLarge,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    enemy.description,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const Spacer(),
+                                  Wrap(
+                                    spacing: 7,
+                                    runSpacing: 7,
+                                    children: [
+                                      GameBadge(
+                                        label: 'Vida: ${enemy.hp}',
+                                        icon: Icons.favorite_outline,
+                                        color: GameColors.health,
+                                      ),
+                                      GameBadge(
+                                        label:
+                                            'Elemento: ${GameVisual.elementName(enemy.element)}',
+                                        icon: GameVisual.elementIcon(
+                                          enemy.element,
+                                        ),
+                                        color: color,
+                                      ),
+                                    ],
+                                  ),
+                                  if (enemy.xp != null &&
+                                      enemy.gold != null) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Recompensa: ${enemy.xp} XP · ${enemy.gold} Gold',
+                                      style: const TextStyle(
+                                        color: GameColors.gold,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: FilledButton(
+                                      onPressed:
+                                          _busy ||
+                                              !_selection!.supportedClassIds
+                                                  .contains(
+                                                    widget.character.classId,
+                                                  ) ||
+                                              _latest?.status == 'active'
+                                          ? null
+                                          : () => _open(enemy: enemy),
+                                      child: const Text('Começar luta'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
-                  if (_busy) const Center(child: CircularProgressIndicator()),
-                ],
+                    if (_busy) const Center(child: CircularProgressIndicator()),
+                  ],
+                ),
               ),
             ),
-          ),
+    ),
   );
 }
-
-String _elementName(String element) => switch (element) {
-  'fire' => 'Fogo',
-  'ice' => 'Gelo',
-  'earth' => 'Terra',
-  'electric' => 'Elétrico',
-  _ => 'Neutro',
-};

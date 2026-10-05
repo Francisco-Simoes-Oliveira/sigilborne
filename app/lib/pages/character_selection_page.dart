@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/character.dart';
 import '../services/api_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/game_ui.dart';
 import '../widgets/logout_button.dart';
 
 class CharacterSelectionPage extends StatefulWidget {
@@ -41,7 +43,7 @@ class _CharacterSelectionPageState extends State<CharacterSelectionPage> {
       setState(() => _characters = characters);
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error.toString());
+      setState(() => _error = friendlyError(error));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -86,12 +88,16 @@ class _CharacterSelectionPageState extends State<CharacterSelectionPage> {
     Widget? action,
   }) => ListView(
     physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.all(32),
+    padding: const EdgeInsets.all(24),
     children: [
-      const SizedBox(height: 48),
-      Icon(icon, size: 56),
-      const SizedBox(height: 20),
-      Text(text, textAlign: TextAlign.center),
+      const SizedBox(height: 42),
+      GameEmptyState(
+        title: _error == null
+            ? 'Sua jornada começa aqui'
+            : 'Não foi possível carregar',
+        message: text,
+        icon: icon,
+      ),
       if (action != null) ...[
         const SizedBox(height: 20),
         Center(child: action),
@@ -100,7 +106,9 @@ class _CharacterSelectionPageState extends State<CharacterSelectionPage> {
   );
 
   Widget _body() {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) {
+      return const GameLoadingView(message: 'Invocando seus personagens...');
+    }
     if (_error != null) {
       return _message(
         text: _error!,
@@ -118,28 +126,104 @@ class _CharacterSelectionPageState extends State<CharacterSelectionPage> {
         icon: Icons.person_add_alt_1,
       );
     }
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: _characters.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final character = _characters[index];
-        return Card(
-          child: ListTile(
-            key: ValueKey('character-${character.id}'),
-            enabled: !_openingPage,
-            contentPadding: const EdgeInsets.all(16),
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(character.name),
-            subtitle: Text(
-              '${character.className} • Nível ${character.level}\n'
-              'Vida: ${character.attribute('hp')} • Energia: ${character.attribute('maxEnergy')}',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 900
+            ? 3
+            : constraints.maxWidth >= 590
+            ? 2
+            : 1;
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          children: [
+            const GameSectionHeading(
+              title: 'Escolha seu herói',
+              subtitle: 'Cada personagem guarda sua própria jornada.',
+              icon: Icons.auto_awesome,
             ),
-            isThreeLine: true,
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _selectCharacter(character),
-          ),
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _characters.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                mainAxisExtent: 290,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
+              ),
+              itemBuilder: (context, index) {
+                final character = _characters[index];
+                final accent = GameColors.forClass(character.classId);
+                return GamePanel(
+                  key: ValueKey('character-${character.id}'),
+                  accent: accent,
+                  onTap: _openingPage
+                      ? null
+                      : () => _selectCharacter(character),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: accent.withValues(alpha: 0.18),
+                            child: Icon(
+                              GameVisual.classIcon(character.classId),
+                              color: accent,
+                            ),
+                          ),
+                          const Spacer(),
+                          GameBadge(
+                            label: 'Nível ${character.level}',
+                            icon: Icons.star_outline,
+                            color: GameColors.gold,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        character.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      Text(
+                        character.className,
+                        style: TextStyle(color: accent),
+                      ),
+                      const SizedBox(height: 14),
+                      GameProgressBar(
+                        label: 'XP',
+                        value: character.xp,
+                        max: character.xpToNextLevel,
+                        color: GameColors.gold,
+                      ),
+                      const Spacer(),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          GameBadge(
+                            label: '${character.attribute('hp')} HP',
+                            icon: Icons.favorite_outline,
+                            color: GameColors.health,
+                          ),
+                          GameBadge(
+                            label: '${character.gold} Gold',
+                            icon: Icons.monetization_on_outlined,
+                            color: GameColors.gold,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
@@ -158,10 +242,12 @@ class _CharacterSelectionPageState extends State<CharacterSelectionPage> {
         LogoutButton(onSignOut: widget.onSignOut),
       ],
     ),
-    body: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: RefreshIndicator(onRefresh: _loadCharacters, child: _body()),
+    body: GameBackdrop(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: GameLayout.maxContent),
+          child: RefreshIndicator(onRefresh: _loadCharacters, child: _body()),
+        ),
       ),
     ),
     bottomNavigationBar: SafeArea(
